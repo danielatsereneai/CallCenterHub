@@ -11,10 +11,10 @@ export const DEFAULT_QUICK_LINK_FILTER = 'perchgroup';
 
 export const LIFE_AT_PERCH_AREAS = [
     { id: 'perchgroup', label: 'PerchGroup', websiteUrl: 'https://www.perchgroup.co.uk/' },
-    { id: 'aci', label: 'ACI', websiteUrl: '#' },
-    { id: 'connect', label: 'Connect', websiteUrl: '#' },
-    { id: 'tml', label: 'TML', websiteUrl: '#' },
-    { id: 'verify', label: 'Verify', websiteUrl: '#' },
+    { id: 'aci', label: 'ACI', websiteUrl: 'https://www.aciuk.co.uk/' },
+    { id: 'connect', label: 'Connect', websiteUrl: 'https://www.perchconnect.co.uk/' },
+    { id: 'tml', label: 'TML', websiteUrl: 'https://www.tm-legalservices.co.uk/' },
+    { id: 'verify', label: 'Verify', websiteUrl: 'https://www.verify-connect.co.uk/' },
 ];
 
 export const TASK_STATUSES = [

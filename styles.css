@@ -1785,3 +1785,409 @@ body.is-authenticated .auth-screen {
     max-height: calc(100vh - 24px);
   }
 }
+
+/* Perch Group visual alignment */
+:root {
+  --bg: #f7f8fb;
+  --panel: #ffffff;
+  --panel-strong: #ffffff;
+  --glass: #f3f6f8;
+  --line: #e1e7eb;
+  --line-strong: #1fac78;
+  --text: #000829;
+  --muted: #646f7d;
+  --cyan: #2195dc;
+  --blue: #2195dc;
+  --green: #1fac78;
+  --amber: #f5b416;
+  --red: #c83a4b;
+  --purple: #712d81;
+  --radius: 22px;
+  --shadow: 0 18px 50px rgba(0, 8, 41, 0.08);
+}
+
+body {
+  color: var(--text);
+  background: #f7f8fb;
+}
+
+body::before {
+  display: none;
+}
+
+.auth-screen {
+  background:
+    linear-gradient(120deg, rgba(33, 149, 220, 0.12), rgba(31, 172, 120, 0.1)),
+    #ffffff;
+}
+
+.container {
+  background: #f7f8fb;
+}
+
+.sidebar,
+.right-panel,
+.action-tile,
+.placeholder-panel,
+.task-panel,
+.chat-container,
+.auth-card,
+.tasks-board-header,
+.board-toolbar,
+.kanban-column,
+.task-modal,
+.profile-card,
+.user-card,
+.model-selector-section,
+.status,
+.settings-field,
+.task-comment {
+  border-color: var(--line);
+  background: #ffffff;
+  backdrop-filter: none;
+  box-shadow: var(--shadow);
+}
+
+.sidebar,
+.right-panel {
+  border-radius: 28px;
+}
+
+.brand,
+.auth-brand {
+  border: 0;
+  background: #ffffff;
+  box-shadow: none;
+  letter-spacing: 0;
+  padding: 12px 10px;
+}
+
+.brand img {
+  display: block;
+  width: min(190px, 100%);
+  height: auto;
+}
+
+.auth-brand img {
+  width: min(220px, 100%);
+}
+
+.brand span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-top: 9px;
+}
+
+.auth-card {
+  border-radius: 28px;
+  padding: 34px;
+}
+
+.auth-card h1,
+.header h1 {
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.header {
+  min-height: 190px;
+  border: 0;
+  border-radius: 30px;
+  color: #ffffff;
+  background:
+    linear-gradient(110deg, rgba(0, 8, 41, 0.86), rgba(0, 8, 41, 0.5)),
+    url("https://www.perchgroup.co.uk/wp-content/uploads/2024/01/hero-background.jpg") center / cover;
+  box-shadow: var(--shadow);
+}
+
+.header h1,
+.header .subtext,
+.header .eyebrow,
+.header .model-info {
+  color: #ffffff;
+}
+
+.header h1 {
+  font-size: clamp(34px, 4vw, 56px);
+}
+
+.eyebrow,
+.section-title,
+.panel-header,
+.system-status > b,
+.auth-card label span,
+.model-label,
+.board-toolbar label span,
+.task-form label span,
+.task-comments-header,
+.settings-field span {
+  color: var(--green);
+  letter-spacing: .08em;
+}
+
+.subtext,
+.chat-header p,
+.action-tile span,
+.mini-card span,
+.task-row span,
+.kanban-card span,
+.profile-card span,
+.settings-profile p,
+.auth-status {
+  color: var(--muted);
+}
+
+.nav-item {
+  color: var(--text);
+  border-radius: 999px;
+}
+
+.nav-icon {
+  border: 0;
+  border-radius: 999px;
+  color: var(--green);
+  background: #eef8f4;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: #ffffff;
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 12px 28px rgba(31, 172, 120, 0.24);
+}
+
+.nav-item:hover .nav-icon,
+.nav-item.active .nav-icon {
+  color: var(--green);
+  background: #ffffff;
+}
+
+.status,
+.status-grid,
+.user-card {
+  color: var(--muted);
+}
+
+.status {
+  background: #f7faf8;
+}
+
+.status-grid b,
+.status-indicator.connected,
+.connection-status.ready,
+.kanban-card .card-owner,
+.chip,
+.auth-status.success {
+  color: var(--green);
+}
+
+#mySettingsButton,
+.connection-status.loading {
+  color: var(--blue);
+}
+
+.connection-status.error,
+.auth-status.error,
+.task-form-status.error,
+.empty-state-error {
+  color: var(--red);
+}
+
+.action-tile {
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.action-tile:hover,
+.kanban-card:hover,
+.task-row:hover,
+.quick-link-card:hover,
+.quick-link-card:focus-visible {
+  border-color: var(--green);
+  background: #f7fbf9;
+  box-shadow: 0 16px 36px rgba(31, 172, 120, 0.14);
+}
+
+.tile-icon,
+.quick-link-icon {
+  color: var(--green) !important;
+}
+
+.model-info,
+.connection-status,
+.chip,
+.kanban-column-header b {
+  border-color: #d6ebe2;
+  background: #eef8f4;
+  color: var(--green);
+}
+
+.speak-button,
+.chat-option,
+.send-button,
+.quick-link-filter-button,
+.icon-button {
+  border-radius: 999px;
+}
+
+.send-button,
+.speak-button,
+.dictation-button.listening {
+  color: #ffffff;
+  background: var(--green);
+  box-shadow: 0 12px 28px rgba(31, 172, 120, 0.22);
+}
+
+.chat-option,
+.icon-button {
+  color: var(--text);
+  background: #ffffff;
+  border-color: var(--line);
+}
+
+.chat-option:hover,
+.speak-button:hover,
+.send-button:hover,
+.icon-button:hover {
+  border-color: var(--green);
+  box-shadow: 0 12px 28px rgba(31, 172, 120, 0.18);
+}
+
+.auth-card input,
+.message-input,
+.model-dropdown,
+.board-toolbar select,
+.task-sync-bar input,
+.task-form input,
+.task-form textarea,
+.task-form select,
+.task-comment-form textarea {
+  color: var(--text);
+  border-color: #dce5ea;
+  background: #ffffff;
+}
+
+.auth-card input:focus,
+.message-input:focus,
+.model-dropdown:focus,
+.board-toolbar select:focus,
+.task-sync-bar input:focus,
+.task-form input:focus,
+.task-form textarea:focus,
+.task-form select:focus,
+.task-comment-form textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(31, 172, 120, 0.12);
+}
+
+.message-input::placeholder {
+  color: #8b95a1;
+}
+
+.chat-container {
+  background: #ffffff;
+}
+
+.chat-header,
+.chat-input-area,
+.panel-header,
+.kanban-column-header,
+.modal-header {
+  border-color: var(--line);
+}
+
+.message p {
+  border-color: var(--line);
+}
+
+.user-message p {
+  color: #ffffff;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.ai-message p {
+  background: #f5faf8;
+  border-color: #d8eee4;
+}
+
+.system-message p {
+  color: #6c4b00;
+  background: #fff8e5;
+  border-color: #f5df9a;
+}
+
+.model-selector-section,
+.quick-link-filter {
+  background: #f7f8fb;
+}
+
+.quick-link-filter {
+  border-color: var(--line);
+  border-radius: 999px;
+}
+
+.quick-link-filter-button {
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 13px;
+}
+
+.quick-link-filter-button:hover,
+.quick-link-filter-button:focus-visible,
+.quick-link-filter-button.active {
+  color: #ffffff;
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.mini-card,
+.quick-link-card,
+.quick-link-card:link,
+.quick-link-card:visited,
+.quick-link-card:hover,
+.quick-link-card:active,
+.kanban-card,
+.task-row,
+.task-comment {
+  border-color: var(--line);
+  background: #ffffff;
+}
+
+.quick-link-icon {
+  border-color: #d6ebe2;
+  background: #eef8f4;
+}
+
+.quick-link-copy {
+  border-color: var(--line);
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.quick-link-copy b {
+  color: var(--text) !important;
+}
+
+.kanban-column.drag-over {
+  border-color: var(--green);
+  background: #f5faf8;
+}
+
+.modal-backdrop {
+  background: rgba(0, 8, 41, 0.5);
+}
+
+.task-modal {
+  color: var(--text);
+}
+
+.settings-avatar {
+  color: #ffffff;
+  background: var(--green);
+  box-shadow: none;
+}

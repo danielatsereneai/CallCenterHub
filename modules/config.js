@@ -1,6 +1,6 @@
 // Client setup: replace these placeholders after creating a project from the template.
 // Cloudflare Pages deployments need public HTTPS endpoints for both services.
-export const OLLAMA_BASE_URL = 'https://ollama-gateway.example.com';
+export const OLLAMA_BASE_URL = 'https://api.sereneai.co.uk';
 export const POCKETBASE_BASE_URL = 'https://pocketbase.sereneai.co.uk';
 export const POCKETBASE_COLLECTION = 'base_start_tasks';
 export const POCKETBASE_USER_COLLECTION = 'base_start_users';

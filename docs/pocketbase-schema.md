@@ -1,6 +1,6 @@
 # PocketBase Schema
 
-Base Start uses PocketBase for user auth and task records. Collection names can be changed in `modules/config.js`, but new projects should start with these defaults.
+Life@Perch uses PocketBase for user auth and task records. Collection names can be changed in `modules/config.js`, but this project currently keeps the existing defaults.
 
 ## `base_start_users`
 
@@ -84,4 +84,3 @@ https://your-client-domain.example
 ```
 
 If Cloudflare Pages uses a preview branch URL, add that origin while testing.
-

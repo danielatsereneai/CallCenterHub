@@ -1,4 +1,5 @@
 import {
+    DEFAULT_QUICK_LINK_FILTER,
     POCKETBASE_AUTH_STORAGE_KEY,
     POCKETBASE_TOKEN_STORAGE_KEY,
 } from './modules/config.js';
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.showAuthScreen();
     }
 
-    ui.setQuickLinkFilter('general');
+    ui.setQuickLinkFilter(DEFAULT_QUICK_LINK_FILTER);
 });
 
 function bindEvents() {

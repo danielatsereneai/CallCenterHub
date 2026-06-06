@@ -841,12 +841,14 @@ body.is-authenticated .auth-screen {
   padding: 18px;
 }
 
-.tasks-board-page {
+.tasks-board-page,
+.knowledge-page {
   display: grid;
   gap: 18px;
 }
 
 .tasks-board-page[hidden],
+.knowledge-page[hidden],
 .home-view[hidden] {
   display: none;
 }
@@ -1087,6 +1089,7 @@ body.is-authenticated .auth-screen {
 
 .quick-link-filter {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   border: 1px solid rgba(35, 213, 255, 0.24);
@@ -1107,6 +1110,27 @@ body.is-authenticated .auth-screen {
   letter-spacing: .08em;
   text-transform: uppercase;
   cursor: pointer;
+}
+
+.quick-link-card[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.quick-link-card[aria-disabled="true"]:hover,
+.quick-link-card[aria-disabled="true"]:focus-visible {
+  transform: none;
+}
+
+.knowledge-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.prompts-placeholder {
+  min-height: 180px;
 }
 
 .quick-link-filter-button:hover,

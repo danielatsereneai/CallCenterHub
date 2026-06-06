@@ -1,4 +1,4 @@
-import { TASK_STATUSES } from './config.js';
+import { LIFE_AT_PERCH_AREAS, TASK_STATUSES } from './config.js';
 import {
     escapeHtml,
     formatDateTime,
@@ -754,7 +754,11 @@ export function createTaskController({
 
     function populateBoardSelect() {
         const currentValue = dom.boardSelect.value || 'all';
-        const boardNames = [...new Set(savedTasks.map(getTaskBoardName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        const defaultBoardNames = LIFE_AT_PERCH_AREAS.map(area => area.label);
+        const savedBoardNames = [...new Set(savedTasks.map(getTaskBoardName).filter(Boolean))]
+            .filter(board => !defaultBoardNames.includes(board))
+            .sort((a, b) => a.localeCompare(b));
+        const boardNames = [...defaultBoardNames, ...savedBoardNames];
         dom.boardSelect.innerHTML = [
             '<option value="all">All Boards</option>',
             ...boardNames.map(board => `<option value="${escapeHtml(board)}">${escapeHtml(board)}</option>`),

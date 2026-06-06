@@ -7,6 +7,16 @@ export const POCKETBASE_USER_COLLECTION = 'base_start_users';
 export const POCKETBASE_TOKEN_STORAGE_KEY = 'baseStartPocketBaseToken';
 export const POCKETBASE_AUTH_STORAGE_KEY = 'baseStartAuth';
 
+export const DEFAULT_QUICK_LINK_FILTER = 'perchgroup';
+
+export const LIFE_AT_PERCH_AREAS = [
+    { id: 'perchgroup', label: 'PerchGroup', websiteUrl: 'https://www.perchgroup.co.uk/' },
+    { id: 'aci', label: 'ACI', websiteUrl: '#' },
+    { id: 'connect', label: 'Connect', websiteUrl: '#' },
+    { id: 'tml', label: 'TML', websiteUrl: '#' },
+    { id: 'verify', label: 'Verify', websiteUrl: '#' },
+];
+
 export const TASK_STATUSES = [
     { id: 'new', label: 'New' },
     { id: 'todo', label: 'To Do' },

@@ -1,10 +1,10 @@
-# Base Start Onboarding
+# Life@Perch Onboarding
 
-Use this checklist when starting a new client dashboard from Base Start.
+Use this checklist when setting up the Life@Perch dashboard.
 
 ## 1. Create The GitHub Project
 
-1. Open the Base Start repository on GitHub.
+1. Open the Life@Perch repository on GitHub.
 2. Mark it as a template repository in repository settings if it is not already marked.
 3. Select **Use this template**.
 4. Create a private client repository.
@@ -15,7 +15,7 @@ If you are setting up this source folder for the first time:
 ```bash
 git init
 git add .
-git commit -m "Initial Base Start template"
+git commit -m "Initial Life@Perch dashboard"
 ```
 
 ## 2. Configure Services
@@ -35,13 +35,13 @@ For Cloudflare Pages, both service URLs must be HTTPS and reachable from the bro
 
 Create the required PocketBase collections described in `docs/pocketbase-schema.md`.
 
-Users should be created from the PocketBase Admin UI or another trusted admin process. The Base Start browser app does not include a public create-user form and should never ask a normal user for a superuser token.
+Users should be created from the PocketBase Admin UI or another trusted admin process. The Life@Perch browser app does not include a public create-user form and should never ask a normal user for a superuser token.
 
 Confirm CORS allows the local development URL and the final Cloudflare Pages domain.
 
 ## 4. Set Up The Ollama Gateway
 
-Base Start calls:
+Life@Perch calls:
 
 ```txt
 GET /api/tags
@@ -92,4 +92,3 @@ Root directory: repository root
 - Cloudflare Pages is connected to the GitHub repository.
 - PocketBase CORS includes local development and Pages domains.
 - No browser screen asks for a PocketBase superuser token.
-

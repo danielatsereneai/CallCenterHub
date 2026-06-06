@@ -1,3 +1,4 @@
+import { DEFAULT_QUICK_LINK_FILTER } from './config.js';
 import {
     escapeHtml,
     formatBoolean,
@@ -55,6 +56,7 @@ export function collectDom() {
         navItems: document.querySelectorAll('.nav-item[data-view]'),
         homeViewElements: document.querySelectorAll('.home-view'),
         tasksBoardPage: document.getElementById('tasksBoardPage'),
+        knowledgePage: document.getElementById('knowledgePage'),
         boardSelect: document.getElementById('boardSelect'),
         refreshBoardButton: document.getElementById('refreshBoardButton'),
         newBoardTaskButton: document.getElementById('newBoardTaskButton'),
@@ -79,7 +81,7 @@ export function createUi(dom) {
     }
 
     function setQuickLinkFilter(filter) {
-        const activeFilter = filter || 'general';
+        const activeFilter = filter || DEFAULT_QUICK_LINK_FILTER;
 
         dom.quickLinkFilterButtons.forEach(button => {
             const isActive = button.dataset.quickLinkFilter === activeFilter;
@@ -94,10 +96,13 @@ export function createUi(dom) {
 
     function showView(view, onTasksView) {
         const isTasksView = view === 'tasks';
+        const isKnowledgeView = view === 'knowledge';
+        const isHomeView = !isTasksView && !isKnowledgeView;
         dom.homeViewElements.forEach(element => {
-            element.hidden = isTasksView;
+            element.hidden = !isHomeView;
         });
         dom.tasksBoardPage.hidden = !isTasksView;
+        dom.knowledgePage.hidden = !isKnowledgeView;
         dom.navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.view === view);
         });

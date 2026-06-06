@@ -1,6 +1,6 @@
-# Base Start Dashboard
+# Life@Perch Dashboard
 
-Base Start is a no-build static dashboard template for client projects. It includes PocketBase-backed login and tasks, a Kanban board, quick links, and an Ollama-compatible agent chat panel.
+Life@Perch is a no-build static operations dashboard for Perch teams. It includes PocketBase-backed login and tasks, Kanban boards, Microsoft 365 quick links, and an Ollama-compatible agent chat panel.
 
 This repository is intended to be used as a GitHub template and deployed to Cloudflare Pages.
 
@@ -10,12 +10,12 @@ This repository is intended to be used as a GitHub template and deployed to Clou
 - PocketBase user login through the `base_start_users` auth collection.
 - PocketBase task create, update, comments, and Kanban status handling through the `base_start_tasks` collection.
 - Agent chat through an Ollama-compatible `/api/chat` endpoint.
-- Client-editable service configuration in `modules/config.js`.
+- Client-editable service and area configuration in `modules/config.js`.
 - Onboarding docs for GitHub template use, PocketBase, Ollama gateway setup, and Cloudflare Pages.
 
 ## Required Services
 
-Base Start expects two services before the app is useful:
+Life@Perch expects two services before the app is useful:
 
 - PocketBase, reachable from local development and the deployed Cloudflare Pages domain.
 - An Ollama-compatible HTTPS gateway, reachable from the browser and exposing `/api/tags` and `/api/chat`.
@@ -60,7 +60,7 @@ Use these settings when connecting the GitHub repository:
 - Build output directory: `/`
 - Root directory: repository root
 
-See `docs/onboarding.md` for the full setup checklist.
+See `docs/onboarding.md` for the full setup checklist. For Perch-specific onboarding, use `docs/perch-customer-setup-plan.md`.
 
 ## Repository Structure
 
@@ -80,4 +80,3 @@ docs/
   onboarding.md
   pocketbase-schema.md
 ```
-

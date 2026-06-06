@@ -254,7 +254,7 @@ export function createChatController({
             task_description: userMessage || 'Task raised from agent chat.',
             Notes: `Agent response:\n${assistantMessage}`,
             Json: {
-                source: 'Base Start chat',
+                source: 'Life@Perch chat',
                 model: selectedModel,
                 status: 'new',
                 board_name: boardName,

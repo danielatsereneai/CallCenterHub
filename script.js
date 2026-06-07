@@ -98,7 +98,9 @@ function bindEvents() {
     dom.refreshBoardButton.addEventListener('click', tasks.refreshPocketBaseData);
     dom.newBoardTaskButton.addEventListener('click', tasks.openBoardTaskModal);
     dom.boardSelect.addEventListener('change', tasks.renderKanbanBoard);
-    dom.taskPanelTokenInput.addEventListener('change', tasks.syncPocketBaseTokenFromPanel);
+    if (dom.taskPanelTokenInput) {
+        dom.taskPanelTokenInput.addEventListener('change', tasks.syncPocketBaseTokenFromPanel);
+    }
     if (dom.pocketbaseTokenInput) {
         dom.pocketbaseTokenInput.addEventListener('change', tasks.syncPocketBaseTokenFromModal);
     }

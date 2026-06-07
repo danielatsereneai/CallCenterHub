@@ -477,7 +477,7 @@ export function createUi(dom) {
         if (!dom.promptLibrary) return;
 
         dom.promptLibrary.innerHTML = PROMPT_LIBRARY_ITEMS.map(promptItem => `
-        <article class="prompt-card">
+        <article class="prompt-card is-minimized">
             <div class="prompt-card-header">
                 <div>
                     <h3>${escapeHtml(promptItem.title)}</h3>
@@ -485,7 +485,8 @@ export function createUi(dom) {
                 </div>
                 <div class="prompt-card-actions">
                     <span class="chip">Static</span>
-                    <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="true">Minimise</button>
+                    <button class="chat-option prompt-copy-button" type="button" data-prompt-copy>Copy</button>
+                    <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="false">Expand</button>
                 </div>
             </div>
             <pre class="prompt-card-body"><code>${escapeHtml(promptItem.prompt)}</code></pre>
@@ -493,7 +494,13 @@ export function createUi(dom) {
     `).join('');
     }
 
-    function handlePromptLibraryClick(event) {
+    async function handlePromptLibraryClick(event) {
+        const copyButton = event.target.closest('[data-prompt-copy]');
+        if (copyButton) {
+            await copyPromptCardText(copyButton);
+            return;
+        }
+
         const toggleButton = event.target.closest('[data-prompt-toggle]');
         if (!toggleButton) return;
 
@@ -504,6 +511,44 @@ export function createUi(dom) {
         promptCard.classList.toggle('is-minimized', isMinimized);
         toggleButton.textContent = isMinimized ? 'Expand' : 'Minimise';
         toggleButton.setAttribute('aria-expanded', String(!isMinimized));
+    }
+
+    async function copyPromptCardText(copyButton) {
+        const promptCard = copyButton.closest('.prompt-card');
+        const promptText = promptCard?.querySelector('code')?.textContent?.trim() || '';
+        if (!promptText) return;
+
+        try {
+            await copyTextToClipboard(promptText);
+            copyButton.textContent = 'Copied';
+            window.setTimeout(() => {
+                copyButton.textContent = 'Copy';
+            }, 1600);
+        } catch (error) {
+            console.error('Prompt copy error:', error);
+            addSystemMessage('Prompt could not be copied. Select the prompt text and copy it manually.', 'error');
+        }
+    }
+
+    async function copyTextToClipboard(text) {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+        } finally {
+            document.body.removeChild(textarea);
+        }
     }
 
     function addUserMessage(text) {

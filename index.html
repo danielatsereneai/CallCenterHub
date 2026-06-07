@@ -78,14 +78,15 @@
         </aside>
 
         <main class="main-content">
+            <div class="global-date-time" aria-live="polite">
+                <span class="model-info" id="dateTimeInfo">Loading time...</span>
+            </div>
+
             <header class="header home-view">
                 <div>
                     <p class="eyebrow">Life@Perch</p>
                     <h1>Operations Dashboard</h1>
                     <p class="subtext">Connected workspace for Perch teams, task boards, Microsoft 365 links, and local agent support.</p>
-                </div>
-                <div class="header-info">
-                    <span class="model-info" id="dateTimeInfo">Loading time...</span>
                 </div>
             </header>
 
@@ -253,8 +254,7 @@
                     </div>
                     <div class="dashboard-section-body">
                         <section class="task-panel" id="taskPanel">
-                            <div class="task-sync-bar">
-                                <input id="taskPanelToken" type="password" placeholder="PocketBase token">
+                            <div class="task-sync-bar task-refresh-bar">
                                 <button class="chat-option" id="refreshTasksButton" type="button">Refresh</button>
                             </div>
                             <div class="task-list" id="taskList">

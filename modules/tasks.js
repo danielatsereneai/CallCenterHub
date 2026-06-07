@@ -29,10 +29,13 @@ export function createTaskController({
         if (dom.pocketbaseTokenInput) {
             dom.pocketbaseTokenInput.value = token;
         }
-        dom.taskPanelTokenInput.value = token;
+        if (dom.taskPanelTokenInput) {
+            dom.taskPanelTokenInput.value = token;
+        }
     }
 
     function syncPocketBaseTokenFromPanel() {
+        if (!dom.taskPanelTokenInput) return;
         session.persistPocketBaseToken(dom.taskPanelTokenInput.value.trim());
         hydratePocketBaseTokenInputs();
     }
@@ -44,7 +47,7 @@ export function createTaskController({
     }
 
     function getPocketBaseAuthToken() {
-        return dom.taskPanelTokenInput.value.trim()
+        return dom.taskPanelTokenInput?.value.trim()
             || session.hydratePocketBaseToken()
             || getCurrentUserToken()
             || '';
@@ -74,7 +77,7 @@ export function createTaskController({
     }
 
     async function loadPocketBaseTasks(options = {}) {
-        const enteredToken = dom.taskPanelTokenInput.value.trim();
+        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
         session.persistPocketBaseToken(enteredToken);
         hydratePocketBaseTokenInputs();
         const token = enteredToken || getCurrentUserToken();
@@ -521,8 +524,9 @@ export function createTaskController({
         jsonValue.assigned = assignedValue;
         jsonValue.assigned_label = getAssignedDisplayName(assignedValue);
 
-        const token = dom.taskPanelTokenInput.value.trim() || session.hydratePocketBaseToken() || '';
-        session.persistPocketBaseToken(dom.taskPanelTokenInput.value.trim());
+        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
+        const token = enteredToken || session.hydratePocketBaseToken() || '';
+        session.persistPocketBaseToken(enteredToken);
         hydratePocketBaseTokenInputs();
 
         return {

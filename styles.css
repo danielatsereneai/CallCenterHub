@@ -321,6 +321,11 @@ body.is-authenticated .auth-screen {
   gap: 22px;
 }
 
+.global-date-time {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .right-panel {
   min-height: calc(100vh - 40px);
   max-height: calc(100vh - 40px);
@@ -1279,6 +1284,12 @@ body.is-authenticated .auth-screen {
   background: #eef8f4;
 }
 
+.prompt-copy-button {
+  min-height: 36px;
+  padding: 9px 12px;
+  border-radius: 11px;
+}
+
 .prompt-card pre {
   max-height: 460px;
   overflow: auto;
@@ -1356,6 +1367,11 @@ body.is-authenticated .auth-screen {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   padding-top: 16px;
+}
+
+.task-refresh-bar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .task-sync-bar input {

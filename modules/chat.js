@@ -257,9 +257,24 @@ export function createChatController({
 
     async function formatTaskDraftWithPrompt(turnIndex) {
         const context = getTaskFormattingContext(turnIndex);
-        const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
-        const parsedResponse = parseTaskFormatterResponse(formatterResponse);
-        return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
+        isWaitingForResponse = true;
+        updateSendButtonState();
+
+        try {
+            const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
+            const parsedResponse = parseTaskFormatterResponse(formatterResponse);
+            return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
+        } catch (error) {
+            if (error instanceof SyntaxError || error.message.includes('api_request')) {
+                ui.addSystemMessage('Task API request could not be structured, so a basic draft was created.', 'error');
+                return buildTaskDraftFromInputFallback(context, error.message);
+            }
+
+            throw error;
+        } finally {
+            isWaitingForResponse = false;
+            updateSendButtonState();
+        }
     }
 
     async function createTaskDraftFromInput({ prompt, preSummary, boardName = '' }) {
@@ -319,6 +334,7 @@ export function createChatController({
             allowed_categories: getAllowedCategoryLabels(),
             allowed_statuses: TASK_STATUSES.map(status => status.id),
             api_request_url: TASK_API_REQUEST_URL,
+            prompt_and_pre_summary_message: context.userMessage,
             user_message: context.userMessage,
             agent_response: context.assistantMessage,
         };
@@ -425,6 +441,33 @@ ${JSON.stringify(promptInput, null, 2)}`;
             ].join('\n\n'),
             Json: {
                 source: 'Life@Perch chat fallback',
+                model: selectedModel,
+                status: 'new',
+                board_name: context.boardName,
+                raised_at: new Date().toISOString(),
+                user_message: context.userMessage,
+                agent_response: context.assistantMessage,
+                chat_history: context.chatHistory,
+            },
+            assigned: '',
+            board_name: context.boardName,
+            task_status: 'new',
+            task_id: Date.now(),
+        };
+    }
+
+    function buildTaskDraftFromInputFallback(context, reason = '') {
+        const taskName = createTaskNameFromText(context.userMessage || context.assistantMessage);
+
+        return {
+            task_name: taskName,
+            task_description: context.userMessage || 'Task raised from AI task draft.',
+            Notes: [
+                reason ? `Task API formatter fallback: ${reason}` : 'Task API formatter fallback used.',
+                context.assistantMessage ? `Pre-summary:\n${context.assistantMessage}` : '',
+            ].filter(Boolean).join('\n\n'),
+            Json: {
+                source: 'Life@Perch new task AI fallback',
                 model: selectedModel,
                 status: 'new',
                 board_name: context.boardName,

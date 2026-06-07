@@ -94,6 +94,7 @@ function bindEvents() {
     }
     dom.taskModal.addEventListener('click', tasks.handleTaskModalBackdropClick);
     dom.taskForm.addEventListener('submit', tasks.saveTask);
+    dom.generateAiTaskButton.addEventListener('click', generateAiTaskDraft);
     dom.addTaskCommentButton.addEventListener('click', tasks.addTaskComment);
     dom.taskList.addEventListener('click', tasks.handleTaskListClick);
     dom.taskList.addEventListener('keydown', tasks.handleTaskListKeydown);
@@ -223,6 +224,38 @@ function handleNavClick(event) {
 
 function handleQuickLinkFilterClick(event) {
     ui.setQuickLinkFilter(event.currentTarget.dataset.quickLinkFilter);
+}
+
+async function generateAiTaskDraft() {
+    const prompt = dom.aiTaskPromptInput.value.trim();
+    const preSummary = dom.aiTaskSummaryInput.value.trim();
+
+    if (!prompt && !preSummary) {
+        ui.setTaskFormStatus('Add a prompt or pre-summary before creating an AI task draft.', 'error');
+        dom.aiTaskPromptInput.focus();
+        return;
+    }
+
+    dom.generateAiTaskButton.disabled = true;
+    dom.generateAiTaskButton.textContent = 'Creating...';
+    ui.setTaskFormStatus('Creating task draft with AI...');
+
+    try {
+        const taskDraft = await chat.createTaskDraftFromInput({
+            prompt,
+            preSummary,
+            boardName: document.getElementById('taskBoardName').value.trim() || tasks.getSelectedBoardName(),
+        });
+        tasks.openTaskModalWithDraft(taskDraft);
+        ui.setTaskFormStatus('Review the AI-created task API request, then save it to PocketBase.', 'success');
+    } catch (error) {
+        console.error('AI task draft error:', error);
+        ui.setTaskFormStatus(error.message, 'error');
+        ui.addSystemMessage(`AI task draft failed: ${error.message}`, 'error');
+    } finally {
+        dom.generateAiTaskButton.disabled = false;
+        dom.generateAiTaskButton.textContent = 'Create with AI';
+    }
 }
 
 function handleGlobalKeydown(event) {

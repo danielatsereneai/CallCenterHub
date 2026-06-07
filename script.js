@@ -40,6 +40,7 @@ const chat = createChatController({
 
 document.addEventListener('DOMContentLoaded', () => {
     chat.populateModelSelect();
+    ui.renderPromptLibrary();
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
     tasks.hydratePocketBaseTokenInputs();

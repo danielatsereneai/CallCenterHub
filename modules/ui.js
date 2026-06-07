@@ -1,4 +1,4 @@
-import { DEFAULT_QUICK_LINK_FILTER } from './config.js';
+import { DEFAULT_QUICK_LINK_FILTER, TASK_API_REQUEST_PROMPT } from './config.js';
 import {
     escapeHtml,
     formatBoolean,
@@ -72,6 +72,7 @@ export function collectDom() {
         agentChatToggle: document.getElementById('agentChatToggle'),
         closeAgentChatButton: document.getElementById('closeAgentChatButton'),
         chatPanel: document.getElementById('chat-panel'),
+        promptLibrary: document.getElementById('promptLibrary'),
     };
 }
 
@@ -214,6 +215,23 @@ export function createUi(dom) {
             dom.connectionStatus.classList.remove('ready');
             dom.connectionStatus.classList.add('error');
         }
+    }
+
+    function renderPromptLibrary() {
+        if (!dom.promptLibrary) return;
+
+        dom.promptLibrary.innerHTML = `
+        <article class="prompt-card">
+            <div class="prompt-card-header">
+                <div>
+                    <h3>${escapeHtml(TASK_API_REQUEST_PROMPT.title)}</h3>
+                    <p>${escapeHtml(TASK_API_REQUEST_PROMPT.purpose)}</p>
+                </div>
+                <span class="chip">Static</span>
+            </div>
+            <pre><code>${escapeHtml(TASK_API_REQUEST_PROMPT.prompt)}</code></pre>
+        </article>
+    `;
     }
 
     function addUserMessage(text) {
@@ -456,6 +474,7 @@ export function createUi(dom) {
         setTaskListStatus,
         updateDateTimeDisplay,
         updateConnectionStatus,
+        renderPromptLibrary,
         addUserMessage,
         addAIMessage,
         addSystemMessage,

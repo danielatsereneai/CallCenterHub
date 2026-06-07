@@ -1133,6 +1133,51 @@ body.is-authenticated .auth-screen {
   min-height: 180px;
 }
 
+.prompt-library {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.prompt-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.prompt-card-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prompt-card h3 {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.prompt-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.prompt-card pre {
+  max-height: 460px;
+  overflow: auto;
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+  background: #f7f8fb;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .quick-link-filter-button:hover,
 .quick-link-filter-button:focus-visible,
 .quick-link-filter-button.active {

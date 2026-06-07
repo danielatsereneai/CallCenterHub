@@ -1,9 +1,15 @@
 import {
     AVAILABLE_MODELS,
     DEFAULT_OLLAMA_MODEL,
+    LIFE_AT_PERCH_AREAS,
     OLLAMA_BASE_URL,
+    POCKETBASE_COLLECTION,
+    TASK_API_REQUEST_PROMPT,
+    TASK_STATUSES,
 } from './config.js';
-import { createTaskNameFromText } from './utils.js';
+import { createTaskNameFromText, normalizeTaskStatus } from './utils.js';
+
+const TASK_API_REQUEST_URL = `/api/collections/${POCKETBASE_COLLECTION}/records`;
 
 export function createChatController({
     dom,
@@ -228,21 +234,39 @@ export function createChatController({
         }
     }
 
-    function handleChatActionClick(event) {
+    async function handleChatActionClick(event) {
         const raiseTaskButton = event.target.closest('.raise-task-button');
         if (!raiseTaskButton) return;
 
         const turnIndex = Number(raiseTaskButton.dataset.turnIndex);
-        const taskDraft = buildTaskDraftFromChat(turnIndex);
-        openTaskModalWithDraft(taskDraft);
+        raiseTaskButton.disabled = true;
+        raiseTaskButton.textContent = 'Preparing Task...';
+
+        try {
+            const taskDraft = await formatTaskDraftWithPrompt(turnIndex);
+            openTaskModalWithDraft(taskDraft);
+        } catch (error) {
+            console.error('Task API formatter error:', error);
+            ui.addSystemMessage('Task API request could not be structured, so a basic draft was created.', 'error');
+            openTaskModalWithDraft(buildFallbackTaskDraft(turnIndex, error.message));
+        } finally {
+            raiseTaskButton.disabled = false;
+            raiseTaskButton.textContent = 'Raise Task';
+        }
     }
 
-    function buildTaskDraftFromChat(turnIndex) {
+    async function formatTaskDraftWithPrompt(turnIndex) {
+        const context = getTaskFormattingContext(turnIndex);
+        const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
+        const parsedResponse = parseTaskFormatterResponse(formatterResponse);
+        return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
+    }
+
+    function getTaskFormattingContext(turnIndex) {
         const assistantTurn = chatTurns[turnIndex] || {};
         const userTurn = findPreviousUserTurn(turnIndex);
         const userMessage = userTurn?.content || '';
         const assistantMessage = assistantTurn.content || '';
-        const taskName = createTaskNameFromText(userMessage || assistantMessage);
         const boardName = getSelectedBoardName();
         const chatHistory = chatTurns.slice(0, turnIndex + 1).map(turn => ({
             role: turn.role,
@@ -250,23 +274,150 @@ export function createChatController({
         }));
 
         return {
-            task_name: taskName,
-            task_description: userMessage || 'Task raised from agent chat.',
-            Notes: `Agent response:\n${assistantMessage}`,
-            Json: {
-                source: 'Life@Perch chat',
-                model: selectedModel,
-                status: 'new',
+            assistantMessage,
+            boardName,
+            chatHistory,
+            turnIndex,
+            userMessage,
+        };
+    }
+
+    function buildTaskFormattingPrompt(context) {
+        const promptInput = {
+            selected_board_name: context.boardName,
+            allowed_categories: getAllowedCategoryLabels(),
+            allowed_statuses: TASK_STATUSES.map(status => status.id),
+            api_request_url: TASK_API_REQUEST_URL,
+            user_message: context.userMessage,
+            agent_response: context.assistantMessage,
+        };
+
+        return `${TASK_API_REQUEST_PROMPT.prompt}
+
+Format this task request:
+${JSON.stringify(promptInput, null, 2)}`;
+    }
+
+    function parseTaskFormatterResponse(text) {
+        const jsonText = extractJsonText(text);
+        const parsed = JSON.parse(jsonText);
+
+        if (!parsed?.api_request?.body || typeof parsed.api_request.body !== 'object') {
+            throw new Error('Missing api_request.body');
+        }
+
+        return parsed;
+    }
+
+    function extractJsonText(text) {
+        const value = String(text || '').trim();
+        const fencedMatch = value.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fencedMatch) return fencedMatch[1].trim();
+
+        const firstBrace = value.indexOf('{');
+        const lastBrace = value.lastIndexOf('}');
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+            return value.slice(firstBrace, lastBrace + 1);
+        }
+
+        return value;
+    }
+
+    function buildTaskDraftFromApiRequest(formatterResult, context, rawFormatterResponse) {
+        const body = formatterResult.api_request.body;
+        const category = normalizeCategory(formatterResult.category || body.board_name || context.boardName);
+        const boardName = normalizeCategory(body.board_name || category || context.boardName);
+        const taskStatus = normalizeTaskStatus(body.task_status || 'new');
+        const taskName = String(body.task_name || createTaskNameFromText(context.userMessage || context.assistantMessage)).slice(0, 80);
+        const summary = String(formatterResult.summary || body.Json?.summary || '').trim();
+        const questions = Array.isArray(body.Json?.questions) ? body.Json.questions.filter(Boolean) : [];
+        const notes = String(body.Notes || '').trim();
+        const taskId = Number(body.task_id) || Date.now();
+        const jsonValue = {
+            ...(body.Json && typeof body.Json === 'object' ? body.Json : {}),
+            source: 'Life@Perch task API prompt',
+            category,
+            summary,
+            questions,
+            status: taskStatus,
+            board_name: boardName,
+            formatted_at: new Date().toISOString(),
+            model: selectedModel,
+            user_message: context.userMessage,
+            agent_response: context.assistantMessage,
+            raw_formatter_response: rawFormatterResponse,
+        };
+        const apiRequestPreview = {
+            method: 'POST',
+            url: TASK_API_REQUEST_URL,
+            body: {
+                ...body,
+                Json: jsonValue,
+                task_id: taskId,
+                task_status: taskStatus,
                 board_name: boardName,
-                raised_at: new Date().toISOString(),
-                user_message: userMessage,
-                agent_response: assistantMessage,
-                chat_history: chatHistory,
+            },
+        };
+
+        return {
+            task_name: taskName || 'Task raised from chat',
+            task_description: body.task_description || context.userMessage || 'Task raised from agent chat.',
+            Notes: [
+                notes || (summary ? `Summary: ${summary}` : ''),
+                `Generated API request:\n${JSON.stringify(apiRequestPreview, null, 2)}`,
+                questions.length ? `Questions:\n${questions.map(question => `- ${question}`).join('\n')}` : '',
+            ].filter(Boolean).join('\n\n') || [
+                summary ? `Summary: ${summary}` : '',
+                `Agent response:\n${context.assistantMessage}`,
+            ].filter(Boolean).join('\n\n'),
+            Json: {
+                ...jsonValue,
+                generated_api_request: apiRequestPreview,
             },
             assigned: '',
             board_name: boardName,
+            task_status: taskStatus,
+            task_id: taskId,
+        };
+    }
+
+    function buildFallbackTaskDraft(turnIndex, reason = '') {
+        const context = getTaskFormattingContext(turnIndex);
+        const taskName = createTaskNameFromText(context.userMessage || context.assistantMessage);
+
+        return {
+            task_name: taskName,
+            task_description: context.userMessage || 'Task raised from agent chat.',
+            Notes: [
+                reason ? `Task API formatter fallback: ${reason}` : 'Task API formatter fallback used.',
+                `Agent response:\n${context.assistantMessage}`,
+            ].join('\n\n'),
+            Json: {
+                source: 'Life@Perch chat fallback',
+                model: selectedModel,
+                status: 'new',
+                board_name: context.boardName,
+                raised_at: new Date().toISOString(),
+                user_message: context.userMessage,
+                agent_response: context.assistantMessage,
+                chat_history: context.chatHistory,
+            },
+            assigned: '',
+            board_name: context.boardName,
+            task_status: 'new',
             task_id: Date.now(),
         };
+    }
+
+    function normalizeCategory(value) {
+        const allowedLabels = getAllowedCategoryLabels();
+        const normalizedValue = String(value || '').trim().toLowerCase();
+        const matchingLabel = allowedLabels.find(label => label.toLowerCase() === normalizedValue);
+        return matchingLabel || (allowedLabels.includes(getSelectedBoardName()) ? getSelectedBoardName() : 'PerchGroup');
+    }
+
+    function getAllowedCategoryLabels() {
+        return LIFE_AT_PERCH_AREAS.map(area => area.label);
     }
 
     function findPreviousUserTurn(startIndex) {

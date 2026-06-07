@@ -560,6 +560,46 @@
         </section>
     </div>
 
+    <div class="modal-backdrop email-response-backdrop" id="emailResponseModal" aria-hidden="true">
+        <section class="task-modal email-response-modal" role="dialog" aria-modal="true" aria-labelledby="emailResponseModalTitle">
+            <div class="modal-header">
+                <div>
+                    <p class="eyebrow">Correspondence Team</p>
+                    <h2 id="emailResponseModalTitle">AI Email Response</h2>
+                </div>
+                <button class="icon-button" id="closeEmailResponseModal" type="button" aria-label="Close AI Email Response">×</button>
+            </div>
+
+            <div class="email-response-workspace">
+                <section class="email-response-output-panel">
+                    <div class="panel-header">
+                        <span>Generated AI Response</span>
+                    </div>
+                    <div class="email-response-output" id="emailResponseOutput">Generated response will appear here.</div>
+                </section>
+
+                <section class="email-response-input-panel">
+                    <label>
+                        <span>Customer Response</span>
+                        <textarea id="emailCustomerResponse" rows="9" placeholder="Paste the email from the customer..."></textarea>
+                    </label>
+
+                    <label>
+                        <span>My Summary Findings / Customer Response</span>
+                        <textarea id="emailSummaryFindings" rows="9" placeholder="Add your findings, account context, decision, and anything the reply must include..."></textarea>
+                    </label>
+
+                    <div class="email-response-status" id="emailResponseStatus" aria-live="polite"></div>
+
+                    <div class="modal-actions">
+                        <button class="chat-option" id="clearEmailResponseButton" type="button">Clear</button>
+                        <button class="send-button" id="generateEmailResponseButton" type="button">Generate Response</button>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+
     <script type="module" src="script.js"></script>
 </body>
 </html>

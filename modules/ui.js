@@ -34,10 +34,10 @@ const TEAM_DASHBOARDS = [
         description: 'Correspondence handling, shared comms, and team workflow links.',
         icon: 'COR',
         actions: [
+            { icon: 'AI', title: 'AI Email Response', text: 'Draft a customer email reply from the email and your findings.', tool: 'aiEmailResponse' },
             { icon: '+', title: 'New Case', text: 'Create a task for correspondence follow-up.' },
             { icon: '↗', title: 'Inbox', text: 'Open the shared correspondence workspace.' },
             { icon: '□', title: 'Templates', text: 'Find standard responses and working notes.' },
-            { icon: '✓', title: 'Daily Checks', text: 'Review routine correspondence actions.' },
         ],
         links: [
             { label: 'Mail', title: 'Outlook', detail: 'Correspondence mail', url: 'https://outlook.office.com/mail/' },
@@ -97,6 +97,14 @@ export function collectDom() {
         taskIdInput: document.getElementById('taskId'),
         taskModalTitle: document.getElementById('taskModalTitle'),
         taskPanelTokenInput: document.getElementById('taskPanelToken'),
+        emailResponseModal: document.getElementById('emailResponseModal'),
+        closeEmailResponseModalButton: document.getElementById('closeEmailResponseModal'),
+        emailCustomerResponseInput: document.getElementById('emailCustomerResponse'),
+        emailSummaryFindingsInput: document.getElementById('emailSummaryFindings'),
+        emailResponseOutput: document.getElementById('emailResponseOutput'),
+        emailResponseStatus: document.getElementById('emailResponseStatus'),
+        generateEmailResponseButton: document.getElementById('generateEmailResponseButton'),
+        clearEmailResponseButton: document.getElementById('clearEmailResponseButton'),
         refreshTasksButton: document.getElementById('refreshTasksButton'),
         mainNavList: document.getElementById('mainNavList'),
         navItems: document.querySelectorAll('.nav-item[data-view]'),
@@ -244,6 +252,12 @@ export function createUi(dom) {
 
         if (event.target.closest('[data-team-pin]')) {
             toggleTeamPin(activeTeamId);
+            return;
+        }
+
+        const toolTile = event.target.closest('[data-team-tool]');
+        if (toolTile?.dataset.teamTool === 'aiEmailResponse') {
+            openEmailResponseModal();
         }
     }
 
@@ -255,7 +269,7 @@ export function createUi(dom) {
         dom.teamDashboardTitle.textContent = team.name;
         dom.teamDashboardDescription.textContent = team.description;
         dom.teamQuickActions.innerHTML = team.actions.map(action => `
-        <article class="action-tile">
+        <article class="action-tile${action.tool ? ' team-tool-tile' : ''}"${action.tool ? ` role="button" tabindex="0" data-team-tool="${escapeHtml(action.tool)}"` : ''}>
             <div class="tile-icon">${escapeHtml(action.icon)}</div>
             <b>${escapeHtml(action.title)}</b>
             <span>${escapeHtml(action.text)}</span>
@@ -330,6 +344,36 @@ export function createUi(dom) {
         } catch {
             addSystemMessage('Pinned teams could not be saved in this browser.', 'error');
         }
+    }
+
+    function openEmailResponseModal() {
+        dom.emailResponseModal.classList.add('open');
+        dom.emailResponseModal.setAttribute('aria-hidden', 'false');
+        setEmailResponseStatus('');
+        dom.emailCustomerResponseInput.focus();
+    }
+
+    function closeEmailResponseModal() {
+        dom.emailResponseModal.classList.remove('open');
+        dom.emailResponseModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function clearEmailResponseForm() {
+        dom.emailCustomerResponseInput.value = '';
+        dom.emailSummaryFindingsInput.value = '';
+        dom.emailResponseOutput.textContent = 'Generated response will appear here.';
+        setEmailResponseStatus('');
+        dom.emailCustomerResponseInput.focus();
+    }
+
+    function setEmailResponseStatus(message, type = '') {
+        dom.emailResponseStatus.textContent = message;
+        dom.emailResponseStatus.classList.remove('success', 'error');
+        if (type) dom.emailResponseStatus.classList.add(type);
+    }
+
+    function setEmailResponseOutput(responseText) {
+        dom.emailResponseOutput.textContent = responseText || 'Generated response will appear here.';
     }
 
     function updateCurrentUserDisplay(currentUser) {
@@ -547,6 +591,11 @@ export function createUi(dom) {
         handleOperationsClick,
         handleTeamDashboardClick,
         openTeamDashboard,
+        openEmailResponseModal,
+        closeEmailResponseModal,
+        clearEmailResponseForm,
+        setEmailResponseStatus,
+        setEmailResponseOutput,
         updateCurrentUserDisplay,
         renderUserSettings,
         openSettingsModal,

@@ -89,6 +89,10 @@ function bindEvents() {
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);
     dom.closeTaskModalButton.addEventListener('click', tasks.closeTaskModal);
     dom.cancelTaskButton.addEventListener('click', tasks.closeTaskModal);
+    dom.closeEmailResponseModalButton.addEventListener('click', ui.closeEmailResponseModal);
+    dom.clearEmailResponseButton.addEventListener('click', ui.clearEmailResponseForm);
+    dom.generateEmailResponseButton.addEventListener('click', generateEmailResponseDraft);
+    dom.emailResponseModal.addEventListener('click', handleEmailResponseModalBackdropClick);
     dom.refreshTasksButton.addEventListener('click', tasks.refreshPocketBaseData);
     dom.refreshBoardButton.addEventListener('click', tasks.refreshPocketBaseData);
     dom.newBoardTaskButton.addEventListener('click', tasks.openBoardTaskModal);
@@ -219,6 +223,12 @@ function handleSettingsModalBackdropClick(event) {
     }
 }
 
+function handleEmailResponseModalBackdropClick(event) {
+    if (event.target === dom.emailResponseModal) {
+        ui.closeEmailResponseModal();
+    }
+}
+
 function handleNavClick(event) {
     const navItem = event.target.closest('.nav-item[data-view]');
     if (!navItem) return;
@@ -264,6 +274,37 @@ async function generateAiTaskDraft() {
     } finally {
         dom.generateAiTaskButton.disabled = false;
         dom.generateAiTaskButton.textContent = 'Create with AI';
+    }
+}
+
+async function generateEmailResponseDraft() {
+    const customerResponse = dom.emailCustomerResponseInput.value.trim();
+    const summaryFindings = dom.emailSummaryFindingsInput.value.trim();
+
+    if (!customerResponse || !summaryFindings) {
+        ui.setEmailResponseStatus('Add the customer response and your summary findings before generating.', 'error');
+        (customerResponse ? dom.emailSummaryFindingsInput : dom.emailCustomerResponseInput).focus();
+        return;
+    }
+
+    dom.generateEmailResponseButton.disabled = true;
+    dom.generateEmailResponseButton.textContent = 'Generating...';
+    ui.setEmailResponseStatus('Generating email response...');
+
+    try {
+        const response = await chat.createEmailResponseDraft({
+            customerResponse,
+            summaryFindings,
+        });
+        ui.setEmailResponseOutput(response);
+        ui.setEmailResponseStatus('Response generated. Review before sending.', 'success');
+    } catch (error) {
+        console.error('AI email response error:', error);
+        ui.setEmailResponseStatus(error.message, 'error');
+        ui.addSystemMessage(`AI email response failed: ${error.message}`, 'error');
+    } finally {
+        dom.generateEmailResponseButton.disabled = false;
+        dom.generateEmailResponseButton.textContent = 'Generate Response';
     }
 }
 

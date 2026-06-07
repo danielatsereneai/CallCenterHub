@@ -1210,6 +1210,17 @@ body.is-authenticated .auth-screen {
   grid-column: auto;
 }
 
+.team-tool-tile {
+  border-color: rgba(31, 172, 120, 0.32);
+  background: linear-gradient(135deg, rgba(31, 172, 120, 0.12), rgba(35, 213, 255, 0.08));
+  cursor: pointer;
+}
+
+.team-tool-tile:focus-visible {
+  outline: 3px solid rgba(31, 172, 120, 0.22);
+  outline-offset: 3px;
+}
+
 .prompts-placeholder {
   min-height: 180px;
 }
@@ -1745,6 +1756,100 @@ body.is-authenticated .auth-screen {
   padding: 0 24px 24px;
 }
 
+.email-response-backdrop {
+  padding: 24px;
+}
+
+.email-response-modal {
+  width: min(1180px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+}
+
+.email-response-workspace {
+  min-height: min(620px, calc(100vh - 190px));
+  padding: 0 24px 24px;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+  gap: 18px;
+}
+
+.email-response-output-panel,
+.email-response-input-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f7f8fb;
+}
+
+.email-response-output-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.email-response-output {
+  min-height: 420px;
+  overflow: auto;
+  padding: 18px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.email-response-input-panel {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.email-response-input-panel label {
+  display: grid;
+  gap: 8px;
+}
+
+.email-response-input-panel label span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.email-response-input-panel textarea {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  padding: 13px;
+}
+
+.email-response-input-panel textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(31, 172, 120, 0.1);
+}
+
+.email-response-status {
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.email-response-status.success {
+  color: var(--green);
+}
+
+.email-response-status.error {
+  color: var(--red);
+}
+
 @media (max-width: 1280px) {
   .container {
     grid-template-columns: 90px minmax(0, 1fr) 340px;
@@ -2135,6 +2240,12 @@ body::before {
 .nav-item.active .nav-icon {
   color: var(--green);
   background: #ffffff;
+}
+
+.pinned-team-nav-item .nav-icon {
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0;
 }
 
 .status,
@@ -2637,6 +2748,25 @@ body.agent-chat-open .agent-chat-toggle {
 
   .team-dashboard-actions {
     justify-content: flex-start;
+  }
+
+  .email-response-backdrop {
+    padding: 10px;
+  }
+
+  .email-response-modal {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+
+  .email-response-workspace {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 0 16px 16px;
+  }
+
+  .email-response-output {
+    min-height: 240px;
   }
 
   .agent-chat-toggle {

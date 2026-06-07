@@ -342,6 +342,36 @@ export function createChatController({
         return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
     }
 
+    async function createEmailResponseDraft({ customerResponse, summaryFindings }) {
+        const cleanCustomerResponse = String(customerResponse || '').trim();
+        const cleanSummaryFindings = String(summaryFindings || '').trim();
+
+        if (!isConnected) {
+            throw new Error('Not connected to Ollama. Please check your connection.');
+        }
+
+        if (isWaitingForResponse) {
+            throw new Error('Still waiting for a response. Please wait.');
+        }
+
+        if (!cleanCustomerResponse || !cleanSummaryFindings) {
+            throw new Error('Add the customer response and your summary findings before generating a reply.');
+        }
+
+        isWaitingForResponse = true;
+        updateSendButtonState();
+
+        try {
+            return await queryOllama(buildSingleUserMessage(buildEmailResponsePrompt({
+                customerResponse: cleanCustomerResponse,
+                summaryFindings: cleanSummaryFindings,
+            })));
+        } finally {
+            isWaitingForResponse = false;
+            updateSendButtonState();
+        }
+    }
+
     function getTaskFormattingContext(turnIndex) {
         const assistantTurn = chatTurns[turnIndex] || {};
         const userTurn = findPreviousUserTurn(turnIndex);
@@ -377,6 +407,25 @@ export function createChatController({
 
 Format this task request:
 ${JSON.stringify(promptInput, null, 2)}`;
+    }
+
+    function buildEmailResponsePrompt({ customerResponse, summaryFindings }) {
+        return `You are an AI writing assistant for the Correspondence Team.
+
+Draft a clear, professional email response to the customer using only the customer email and the user's summary findings.
+
+Rules:
+- Do not invent facts, promises, dates, amounts, or outcomes.
+- If a detail is missing, keep the response appropriately cautious.
+- Use a warm, concise, professional UK business tone.
+- Do not include internal notes or analysis.
+- Return only the email response body.
+
+Customer response:
+${customerResponse}
+
+My summary findings / customer response context:
+${summaryFindings}`;
     }
 
     function parseTaskFormatterResponse(text) {
@@ -551,5 +600,6 @@ ${JSON.stringify(promptInput, null, 2)}`;
         sendMessage,
         handleChatActionClick,
         createTaskDraftFromInput,
+        createEmailResponseDraft,
     };
 }

@@ -7,6 +7,46 @@ import {
     getUserInitials,
 } from './utils.js';
 
+const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
+const TEAM_DASHBOARDS = [
+    {
+        id: 'qc',
+        shortName: 'QC',
+        name: 'QC - Quality Control',
+        description: 'Quality control checks, review workflows, and team links.',
+        icon: 'QC',
+        actions: [
+            { icon: '+', title: 'New Review', text: 'Start a quality control review or follow-up task.' },
+            { icon: '✓', title: 'Review Queue', text: 'Open the team queue for work awaiting checks.' },
+            { icon: '!', title: 'Escalations', text: 'Track items that need quality ownership.' },
+            { icon: 'i', title: 'Guidance', text: 'Open QC working notes and standards.' },
+        ],
+        links: [
+            { label: 'Mail', title: 'Outlook', detail: 'QC mail', url: 'https://outlook.office.com/mail/' },
+            { label: 'Team', title: 'Teams', detail: 'QC Teams', url: 'https://teams.microsoft.com/' },
+            { label: 'Web', title: 'Quality Hub', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
+        ],
+    },
+    {
+        id: 'correspondence',
+        shortName: 'COR',
+        name: 'Correspondence Team',
+        description: 'Correspondence handling, shared comms, and team workflow links.',
+        icon: 'COR',
+        actions: [
+            { icon: '+', title: 'New Case', text: 'Create a task for correspondence follow-up.' },
+            { icon: '↗', title: 'Inbox', text: 'Open the shared correspondence workspace.' },
+            { icon: '□', title: 'Templates', text: 'Find standard responses and working notes.' },
+            { icon: '✓', title: 'Daily Checks', text: 'Review routine correspondence actions.' },
+        ],
+        links: [
+            { label: 'Mail', title: 'Outlook', detail: 'Correspondence mail', url: 'https://outlook.office.com/mail/' },
+            { label: 'Team', title: 'Teams', detail: 'Correspondence Teams', url: 'https://teams.microsoft.com/' },
+            { label: 'Web', title: 'PerchGroup', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
+        ],
+    },
+];
+
 export function collectDom() {
     return {
         authScreen: document.getElementById('authScreen'),
@@ -58,8 +98,17 @@ export function collectDom() {
         taskModalTitle: document.getElementById('taskModalTitle'),
         taskPanelTokenInput: document.getElementById('taskPanelToken'),
         refreshTasksButton: document.getElementById('refreshTasksButton'),
+        mainNavList: document.getElementById('mainNavList'),
         navItems: document.querySelectorAll('.nav-item[data-view]'),
         homeViewElements: document.querySelectorAll('.home-view'),
+        operationsPage: document.getElementById('operationsPage'),
+        operationsTeamGrid: document.getElementById('operationsTeamGrid'),
+        teamDashboardPage: document.getElementById('teamDashboardPage'),
+        teamDashboardTitle: document.getElementById('teamDashboardTitle'),
+        teamDashboardDescription: document.getElementById('teamDashboardDescription'),
+        teamPinButton: document.getElementById('teamPinButton'),
+        teamQuickActions: document.getElementById('teamQuickActions'),
+        teamQuickLinks: document.getElementById('teamQuickLinks'),
         tasksBoardPage: document.getElementById('tasksBoardPage'),
         knowledgePage: document.getElementById('knowledgePage'),
         boardSelect: document.getElementById('boardSelect'),
@@ -78,6 +127,7 @@ export function collectDom() {
 
 export function createUi(dom) {
     let announcementTimer = null;
+    let activeTeamId = '';
 
     function showAuthScreen() {
         document.body.classList.remove('is-authenticated');
@@ -106,20 +156,179 @@ export function createUi(dom) {
     }
 
     function showView(view, onTasksView) {
+        activeTeamId = view === 'team' ? activeTeamId : '';
         const isTasksView = view === 'tasks';
         const isKnowledgeView = view === 'knowledge';
-        const isHomeView = !isTasksView && !isKnowledgeView;
+        const isOperationsView = view === 'operations';
+        const isTeamView = view === 'team';
+        const isHomeView = view === 'command';
         dom.homeViewElements.forEach(element => {
             element.hidden = !isHomeView;
         });
+        dom.operationsPage.hidden = !isOperationsView;
+        dom.teamDashboardPage.hidden = !isTeamView;
         dom.tasksBoardPage.hidden = !isTasksView;
         dom.knowledgePage.hidden = !isKnowledgeView;
-        dom.navItems.forEach(item => {
-            item.classList.toggle('active', item.dataset.view === view);
+        getNavItems().forEach(item => {
+            const isActiveTeam = isTeamView && item.dataset.teamId === activeTeamId;
+            item.classList.toggle('active', item.dataset.view === view && (!isTeamView || isActiveTeam));
         });
 
         if (isTasksView && onTasksView) {
             onTasksView();
+        }
+    }
+
+    function renderOperationsTeams() {
+        if (!dom.operationsTeamGrid) return;
+
+        dom.operationsTeamGrid.innerHTML = TEAM_DASHBOARDS.map(team => `
+        <article class="team-tile" data-team-id="${escapeHtml(team.id)}">
+            <div class="team-tile-icon">${escapeHtml(team.icon)}</div>
+            <div>
+                <h3>${escapeHtml(team.name)}</h3>
+                <p>${escapeHtml(team.description)}</p>
+            </div>
+            <div class="team-tile-actions">
+                <button class="chat-option" type="button" data-team-open="${escapeHtml(team.id)}">Open</button>
+                <button class="send-button team-pin-toggle" type="button" data-team-pin-toggle="${escapeHtml(team.id)}">${getPinnedTeamIds().includes(team.id) ? 'Unpin' : 'Pin'}</button>
+            </div>
+        </article>
+    `).join('');
+    }
+
+    function renderPinnedTeamNav() {
+        if (!dom.mainNavList) return;
+
+        dom.mainNavList.querySelectorAll('[data-pinned-team-nav]').forEach(item => item.remove());
+
+        const pinnedTeams = getPinnedTeamIds()
+            .map(teamId => getTeamById(teamId))
+            .filter(Boolean);
+        const insertionPoint = dom.mainNavList.querySelector('.nav-item[data-view="tasks"]')?.parentElement || null;
+
+        pinnedTeams.forEach(team => {
+            const item = document.createElement('li');
+            item.dataset.pinnedTeamNav = team.id;
+            item.innerHTML = `
+            <a href="#" class="nav-item pinned-team-nav-item" data-view="team" data-team-id="${escapeHtml(team.id)}">
+                <span class="nav-icon">${escapeHtml(team.icon)}</span>
+                <span>${escapeHtml(team.shortName)}</span>
+            </a>
+        `;
+            dom.mainNavList.insertBefore(item, insertionPoint);
+        });
+        updateNavActiveState();
+    }
+
+    function handleOperationsClick(event) {
+        const pinButton = event.target.closest('[data-team-pin-toggle]');
+        if (pinButton) {
+            toggleTeamPin(pinButton.dataset.teamPinToggle);
+            return;
+        }
+
+        const openButton = event.target.closest('[data-team-open]');
+        const tile = event.target.closest('[data-team-id]');
+        const teamId = openButton?.dataset.teamOpen || tile?.dataset.teamId || '';
+        if (teamId) {
+            openTeamDashboard(teamId);
+        }
+    }
+
+    function handleTeamDashboardClick(event) {
+        if (event.target.closest('[data-team-back]')) {
+            showView('operations');
+            return;
+        }
+
+        if (event.target.closest('[data-team-pin]')) {
+            toggleTeamPin(activeTeamId);
+        }
+    }
+
+    function openTeamDashboard(teamId) {
+        const team = getTeamById(teamId);
+        if (!team) return;
+
+        activeTeamId = team.id;
+        dom.teamDashboardTitle.textContent = team.name;
+        dom.teamDashboardDescription.textContent = team.description;
+        dom.teamQuickActions.innerHTML = team.actions.map(action => `
+        <article class="action-tile">
+            <div class="tile-icon">${escapeHtml(action.icon)}</div>
+            <b>${escapeHtml(action.title)}</b>
+            <span>${escapeHtml(action.text)}</span>
+        </article>
+    `).join('');
+        dom.teamQuickLinks.innerHTML = team.links.map(link => `
+        <a class="mini-card quick-link-card" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="quick-link-icon">${escapeHtml(link.label)}</span>
+            <span class="quick-link-copy">
+                <b>${escapeHtml(link.title)}</b>
+                <small>${escapeHtml(link.detail)}</small>
+            </span>
+        </a>
+    `).join('');
+        updateTeamPinButton();
+        showView('team');
+    }
+
+    function toggleTeamPin(teamId) {
+        const team = getTeamById(teamId);
+        if (!team) return;
+
+        const pinnedTeamIds = getPinnedTeamIds();
+        const nextPinnedTeamIds = pinnedTeamIds.includes(team.id)
+            ? pinnedTeamIds.filter(pinnedTeamId => pinnedTeamId !== team.id)
+            : [...pinnedTeamIds, team.id];
+
+        setPinnedTeamIds(nextPinnedTeamIds);
+        renderOperationsTeams();
+        renderPinnedTeamNav();
+        updateTeamPinButton();
+    }
+
+    function updateTeamPinButton() {
+        if (!dom.teamPinButton || !activeTeamId) return;
+
+        const isPinned = getPinnedTeamIds().includes(activeTeamId);
+        dom.teamPinButton.textContent = isPinned ? 'Unpin' : 'Pin';
+        dom.teamPinButton.setAttribute('aria-pressed', String(isPinned));
+    }
+
+    function updateNavActiveState() {
+        if (!activeTeamId) return;
+
+        getNavItems().forEach(item => {
+            const isActiveTeam = item.dataset.view === 'team' && item.dataset.teamId === activeTeamId;
+            item.classList.toggle('active', isActiveTeam);
+        });
+    }
+
+    function getNavItems() {
+        return [...document.querySelectorAll('.nav-item[data-view]')];
+    }
+
+    function getTeamById(teamId) {
+        return TEAM_DASHBOARDS.find(team => team.id === teamId);
+    }
+
+    function getPinnedTeamIds() {
+        try {
+            const parsed = JSON.parse(window.localStorage?.getItem(PINNED_TEAM_STORAGE_KEY) || '[]');
+            if (!Array.isArray(parsed)) return [];
+            return parsed.filter(teamId => getTeamById(teamId));
+        } catch {
+            return [];
+        }
+    }
+
+    function setPinnedTeamIds(teamIds) {
+        try {
+            window.localStorage?.setItem(PINNED_TEAM_STORAGE_KEY, JSON.stringify(teamIds));
+        } catch {
+            addSystemMessage('Pinned teams could not be saved in this browser.', 'error');
         }
     }
 
@@ -333,6 +542,11 @@ export function createUi(dom) {
         showAppScreen,
         setQuickLinkFilter,
         showView,
+        renderOperationsTeams,
+        renderPinnedTeamNav,
+        handleOperationsClick,
+        handleTeamDashboardClick,
+        openTeamDashboard,
         updateCurrentUserDisplay,
         renderUserSettings,
         openSettingsModal,

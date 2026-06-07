@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
     tasks.hydratePocketBaseTokenInputs();
+    ui.renderOperationsTeams();
+    ui.renderPinnedTeamNav();
     hydrateAuthSession();
 
     bindEvents();
@@ -76,6 +78,12 @@ function bindEvents() {
     if (dom.promptLibrary) {
         dom.promptLibrary.addEventListener('click', ui.handlePromptLibraryClick);
     }
+    if (dom.operationsTeamGrid) {
+        dom.operationsTeamGrid.addEventListener('click', ui.handleOperationsClick);
+    }
+    if (dom.teamDashboardPage) {
+        dom.teamDashboardPage.addEventListener('click', ui.handleTeamDashboardClick);
+    }
 
     dom.newTaskTile.addEventListener('click', tasks.openTaskModal);
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);
@@ -103,9 +111,7 @@ function bindEvents() {
     dom.kanbanBoard.addEventListener('drop', tasks.handleKanbanDrop);
     dom.kanbanBoard.addEventListener('dragend', tasks.handleKanbanDragEnd);
 
-    dom.navItems.forEach(item => {
-        item.addEventListener('click', handleNavClick);
-    });
+    dom.mainNavList.addEventListener('click', handleNavClick);
     dom.quickLinkFilterButtons.forEach(button => {
         button.addEventListener('click', handleQuickLinkFilterClick);
     });
@@ -214,8 +220,16 @@ function handleSettingsModalBackdropClick(event) {
 }
 
 function handleNavClick(event) {
+    const navItem = event.target.closest('.nav-item[data-view]');
+    if (!navItem) return;
+
     event.preventDefault();
-    const view = event.currentTarget.dataset.view;
+    const view = navItem.dataset.view;
+    if (view === 'team') {
+        ui.openTeamDashboard(navItem.dataset.teamId);
+        return;
+    }
+
     ui.showView(view, tasks.renderKanbanBoard);
 }
 

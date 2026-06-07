@@ -60,9 +60,9 @@
             </div>
 
             <nav class="nav-menu">
-                <ul>
+                <ul id="mainNavList">
                     <li><a href="#" class="nav-item active" data-view="command"><span class="nav-icon">⌘</span><span>Dashboard</span></a></li>
-                    <li><a href="#" class="nav-item"><span class="nav-icon">◇</span><span>Operations</span></a></li>
+                    <li><a href="#" class="nav-item" data-view="operations"><span class="nav-icon">◇</span><span>Operations</span></a></li>
                     <li><a href="#" class="nav-item" data-view="tasks"><span class="nav-icon">✓</span><span>Tasks</span></a></li>
                     <li><a href="#" class="nav-item" data-view="knowledge"><span class="nav-icon">▤</span><span>Knowledge</span></a></li>
                     <li><a href="#" class="nav-item"><span class="nav-icon">⚙</span><span>Systems</span></a></li>
@@ -263,6 +263,54 @@
                         </section>
                     </div>
                 </article>
+            </section>
+
+            <section class="operations-page" id="operationsPage" hidden>
+                <div class="tasks-board-header">
+                    <div>
+                        <p class="eyebrow">Operations</p>
+                        <h2>Teams Dashboards</h2>
+                        <p class="subtext">Open team dashboards and pin the ones you use most to your local navigation.</p>
+                    </div>
+                </div>
+
+                <div class="operations-team-grid" id="operationsTeamGrid"></div>
+            </section>
+
+            <section class="team-dashboard-page" id="teamDashboardPage" hidden>
+                <div class="tasks-board-header">
+                    <div>
+                        <p class="eyebrow">Team Dashboard</p>
+                        <h2 id="teamDashboardTitle">Team Dashboard</h2>
+                        <p class="subtext" id="teamDashboardDescription">Quick actions and links for this team.</p>
+                    </div>
+                    <div class="team-dashboard-actions">
+                        <button class="chat-option" type="button" data-team-back>All Teams</button>
+                        <button class="send-button" type="button" id="teamPinButton" data-team-pin>Pin</button>
+                    </div>
+                </div>
+
+                <section class="dashboard-widgets team-dashboard-widgets" aria-label="Team dashboard">
+                    <article class="dashboard-section quick-actions-section">
+                        <div class="dashboard-section-header">
+                            <span class="dashboard-section-title">Quick Actions</span>
+                        </div>
+                        <div class="dashboard-section-body">
+                            <section class="actions" id="teamQuickActions"></section>
+                        </div>
+                    </article>
+
+                    <article class="dashboard-section quick-links-section">
+                        <div class="dashboard-section-header">
+                            <span class="dashboard-section-title">Quick Links</span>
+                        </div>
+                        <div class="dashboard-section-body">
+                            <section class="placeholder-panel quick-links-panel">
+                                <div class="placeholder-grid quick-link-grid" id="teamQuickLinks"></div>
+                            </section>
+                        </div>
+                    </article>
+                </section>
             </section>
 
             <section class="tasks-board-page" id="tasksBoardPage" hidden>

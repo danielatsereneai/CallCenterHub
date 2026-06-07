@@ -832,13 +832,17 @@ body.is-authenticated .auth-screen {
 }
 
 .tasks-board-page,
-.knowledge-page {
+.knowledge-page,
+.operations-page,
+.team-dashboard-page {
   display: grid;
   gap: 18px;
 }
 
 .tasks-board-page[hidden],
 .knowledge-page[hidden],
+.operations-page[hidden],
+.team-dashboard-page[hidden],
 .home-view[hidden] {
   display: none;
 }
@@ -1122,6 +1126,88 @@ body.is-authenticated .auth-screen {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.operations-team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.team-tile {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  cursor: pointer;
+  transition: 180ms ease;
+}
+
+.team-tile:hover,
+.team-tile:focus-within {
+  border-color: var(--green);
+  background: #f7fbf9;
+  box-shadow: 0 16px 36px rgba(31, 172, 120, 0.14);
+  transform: translateY(-2px);
+}
+
+.team-tile-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: var(--green);
+  background: linear-gradient(135deg, rgba(31, 172, 120, 0.16), rgba(35, 213, 255, 0.12));
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: .04em;
+}
+
+.team-tile h3 {
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.team-tile p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 7px;
+}
+
+.team-tile-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.team-pin-toggle,
+.team-dashboard-actions .send-button {
+  min-width: 92px;
+}
+
+.team-dashboard-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.team-dashboard-widgets {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+}
+
+.team-dashboard-widgets .quick-actions-section {
+  grid-column: auto;
 }
 
 .prompts-placeholder {
@@ -2540,8 +2626,17 @@ body.agent-chat-open .agent-chat-toggle {
 
   .quick-actions-section,
   .quick-links-section,
-  .tasks-section {
+  .tasks-section,
+  .team-dashboard-widgets .quick-actions-section {
     grid-column: 1 / -1;
+  }
+
+  .operations-team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-dashboard-actions {
+    justify-content: flex-start;
   }
 
   .agent-chat-toggle {

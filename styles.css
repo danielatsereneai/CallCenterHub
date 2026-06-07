@@ -1034,10 +1034,9 @@ body.is-authenticated .auth-screen {
 }
 
 .quick-link-grid {
-  grid-template-columns: repeat(4, 64px);
-  justify-content: start;
-  align-items: center;
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  align-items: stretch;
+  gap: 10px;
 }
 
 .mini-card {
@@ -1053,12 +1052,13 @@ body.is-authenticated .auth-screen {
 .quick-link-card:hover,
 .quick-link-card:active {
   position: relative;
-  width: 64px;
-  height: 64px;
-  min-height: 64px;
-  padding: 9px;
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 10px;
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 9px;
   color: var(--text) !important;
   text-decoration: none !important;
   transition: 180ms ease;
@@ -1071,15 +1071,20 @@ body.is-authenticated .auth-screen {
 }
 
 .quick-link-icon {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   display: grid !important;
   place-items: center;
-  border: 1px solid rgba(35, 213, 255, 0.42);
-  border-radius: 8px;
-  color: var(--cyan) !important;
-  font-size: 20px;
-  background: rgba(35, 213, 255, 0.06);
+  border: 1px solid rgba(31, 172, 120, 0.28);
+  border-radius: 14px;
+  color: var(--green) !important;
+  font-size: 11px !important;
+  font-weight: 950;
+  letter-spacing: .04em;
+  line-height: 1;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, rgba(31, 172, 120, 0.16), rgba(35, 213, 255, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
   margin-top: 0 !important;
 }
 
@@ -1188,30 +1193,25 @@ body.is-authenticated .auth-screen {
 }
 
 .quick-link-copy {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 10px);
-  z-index: 5;
-  min-width: max-content;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(4, 17, 31, 0.96);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32), 0 0 18px rgba(35, 213, 255, 0.12);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 4px);
-  transition: 160ms ease;
+  position: static;
+  min-width: 0;
+  display: grid !important;
+  gap: 2px;
+  margin-top: 0 !important;
+  text-align: center;
 }
 
 .quick-link-copy b {
-  color: #edfaff !important;
-  font-size: 14px;
+  color: var(--text) !important;
+  font-size: 12px;
   line-height: 1.2;
 }
 
 .quick-link-copy small {
-  display: none !important;
+  display: block !important;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.25;
 }
 
 .quick-link-card:hover,
@@ -1223,19 +1223,12 @@ body.is-authenticated .auth-screen {
   outline: none;
 }
 
-.quick-link-card:hover .quick-link-copy,
-.quick-link-card:focus-visible .quick-link-copy {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
 .mini-card b,
 .mini-card span {
   display: block;
 }
 
 .mini-card span {
-  margin-top: 7px;
   font-size: 13px;
 }
 
@@ -1827,7 +1820,7 @@ body.is-authenticated .auth-screen {
   }
 
   .quick-link-grid {
-    grid-template-columns: repeat(4, 56px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
@@ -1836,14 +1829,12 @@ body.is-authenticated .auth-screen {
   .quick-link-card:visited,
   .quick-link-card:hover,
   .quick-link-card:active {
-    width: 56px;
-    height: 56px;
-    min-height: 56px;
+    min-height: 88px;
   }
 
   .quick-link-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
 
   .settings-grid,
@@ -2233,14 +2224,14 @@ body::before {
 }
 
 .quick-link-icon {
-  border-color: #d6ebe2;
-  background: #eef8f4;
+  border-color: rgba(31, 172, 120, 0.28);
+  background: linear-gradient(135deg, rgba(31, 172, 120, 0.16), rgba(35, 213, 255, 0.12));
 }
 
 .quick-link-copy {
-  border-color: var(--line);
-  background: #ffffff;
-  box-shadow: var(--shadow);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .quick-link-copy b {
@@ -2384,7 +2375,7 @@ body::before {
 }
 
 .quick-links-section .quick-link-grid {
-  grid-template-columns: repeat(3, 64px);
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
 }
 
 .tasks-section .task-panel {

@@ -213,6 +213,7 @@ body.is-authenticated .auth-screen {
   padding: 12px;
   display: grid;
   gap: 8px;
+  margin-top: auto;
 }
 
 .user-card span {
@@ -280,14 +281,16 @@ body.is-authenticated .auth-screen {
 .system-status {
   border-radius: 16px;
   padding: 14px;
+  display: grid;
+  gap: 10px;
 }
 
 .system-status > b {
+  display: block;
   font-size: 11px;
   letter-spacing: .14em;
   color: #bdeeff;
   font-weight: 800;
-  margin-bottom: 12px;
 }
 
 .status {
@@ -309,19 +312,6 @@ body.is-authenticated .auth-screen {
 
 .status-indicator.connected {
   color: var(--green);
-}
-
-.status-grid {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.status-grid b {
-  display: inline-block;
-  color: var(--green);
-  margin-top: 4px;
 }
 
 .main-content {
@@ -1680,7 +1670,7 @@ body.is-authenticated .auth-screen {
   .sidebar .brand span,
   .sidebar .system-status > b,
   .sidebar .status span:last-child,
-  .sidebar .status-grid,
+  .sidebar .user-card,
   .nav-item span {
     display: none;
   }
@@ -2057,7 +2047,6 @@ body::before {
 }
 
 .status,
-.status-grid,
 .user-card {
   color: var(--muted);
 }
@@ -2066,7 +2055,6 @@ body::before {
   background: #f7faf8;
 }
 
-.status-grid b,
 .status-indicator.connected,
 .connection-status.ready,
 .kanban-card .card-owner,

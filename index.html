@@ -51,11 +51,12 @@
                 <span>Life@Perch Operations Hub</span>
             </div>
 
-            <div class="user-card" id="userCard" hidden>
-                <span>Signed in as</span>
-                <b id="currentUserName">Command User</b>
-                <button class="chat-option" id="mySettingsButton" type="button">My Settings</button>
-                <button class="chat-option" id="logoutButton" type="button">Log Out</button>
+            <div class="system-status">
+                <b>SYSTEM STATUS</b>
+                <div class="status">
+                    <div class="status-indicator" id="statusIndicator">●</div>
+                    <span id="statusText">Connecting...</span>
+                </div>
             </div>
 
             <nav class="nav-menu">
@@ -68,16 +69,11 @@
                 </ul>
             </nav>
 
-            <div class="system-status">
-                <b>SYSTEM STATUS</b>
-                <div class="status">
-                    <div class="status-indicator" id="statusIndicator">●</div>
-                    <span id="statusText">Connecting...</span>
-                </div>
-                <div class="status-grid">
-                    <span>MODE<br><b>LOCAL</b></span>
-                    <span>AI<br><b>OLLAMA</b></span>
-                </div>
+            <div class="user-card" id="userCard" hidden>
+                <span>Signed in as</span>
+                <b id="currentUserName">Command User</b>
+                <button class="chat-option" id="mySettingsButton" type="button">My Settings</button>
+                <button class="chat-option" id="logoutButton" type="button">Log Out</button>
             </div>
         </aside>
 

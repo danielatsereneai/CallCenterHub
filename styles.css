@@ -2251,15 +2251,26 @@ body::before {
 
 .dashboard-widgets {
   display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 18px;
+  align-items: start;
 }
 
 .dashboard-widget {
+  grid-column: 1 / -1;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: #ffffff;
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.dashboard-widget.widget-size-full {
+  grid-column: span 12;
+}
+
+.dashboard-widget.widget-size-half {
+  grid-column: span 6;
 }
 
 .dashboard-widget.is-dragging {
@@ -2339,6 +2350,24 @@ body::before {
 
 .dashboard-widget .actions {
   padding: 18px;
+}
+
+.dashboard-widget.widget-size-half .actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-widget.widget-size-half .panel-header {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-widget.widget-size-half .quick-link-grid {
+  grid-template-columns: repeat(3, 64px);
+}
+
+.dashboard-widget.widget-size-half .task-sync-bar {
+  grid-template-columns: 1fr;
 }
 
 .header .model-info {
@@ -2464,6 +2493,11 @@ body.agent-chat-open .agent-chat-toggle {
 
   .dashboard-widget .actions {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-widget.widget-size-half,
+  .dashboard-widget.widget-size-full {
+    grid-column: 1 / -1;
   }
 
   .widget-toolbar {

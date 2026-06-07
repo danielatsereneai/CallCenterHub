@@ -284,18 +284,28 @@ export function createUi(dom) {
 
         dom.dashboardWidgetCards.forEach(widget => {
             const isMinimized = state.minimized.includes(widget.dataset.widgetId);
+            setWidgetSize(widget, state.sizes[widget.dataset.widgetId] || 'full');
             setWidgetMinimized(widget, isMinimized);
         });
     }
 
     function handleWidgetControlClick(event) {
+        const sizeButton = event.target.closest('[data-widget-size]');
         const toggleButton = event.target.closest('[data-widget-toggle]');
-        if (!toggleButton) return;
+        if (!toggleButton && !sizeButton) return;
 
-        const widget = toggleButton.closest('.dashboard-widget');
+        const widget = event.target.closest('.dashboard-widget');
         if (!widget) return;
 
-        setWidgetMinimized(widget, !widget.classList.contains('is-minimized'));
+        if (sizeButton) {
+            const currentSize = widget.dataset.widgetSize || 'full';
+            setWidgetSize(widget, currentSize === 'full' ? 'half' : 'full');
+        }
+
+        if (toggleButton) {
+            setWidgetMinimized(widget, !widget.classList.contains('is-minimized'));
+        }
+
         persistWidgetState();
     }
 
@@ -318,7 +328,10 @@ export function createUi(dom) {
         if (!draggedWidget) return;
 
         const targetRect = targetWidget.getBoundingClientRect();
-        const insertAfter = event.clientY > targetRect.top + targetRect.height / 2;
+        const isSameRow = Math.abs(event.clientY - (targetRect.top + targetRect.height / 2)) < targetRect.height / 2;
+        const insertAfter = isSameRow
+            ? event.clientX > targetRect.left + targetRect.width / 2
+            : event.clientY > targetRect.top + targetRect.height / 2;
         dom.dashboardWidgets.insertBefore(draggedWidget, insertAfter ? targetWidget.nextSibling : targetWidget);
     }
 
@@ -343,6 +356,21 @@ export function createUi(dom) {
         }
     }
 
+    function setWidgetSize(widget, size) {
+        const resolvedSize = size === 'half' ? 'half' : 'full';
+        const sizeButton = widget.querySelector('[data-widget-size]');
+        widget.dataset.widgetSize = resolvedSize;
+        widget.classList.toggle('widget-size-half', resolvedSize === 'half');
+        widget.classList.toggle('widget-size-full', resolvedSize === 'full');
+
+        if (sizeButton) {
+            const title = getWidgetTitle(widget);
+            sizeButton.textContent = resolvedSize === 'half' ? '↔' : '⇔';
+            sizeButton.setAttribute('aria-label', `Make ${title} ${resolvedSize === 'half' ? 'full width' : 'half width'}`);
+            sizeButton.setAttribute('aria-pressed', String(resolvedSize === 'half'));
+        }
+    }
+
     function getWidgetTitle(widget) {
         return widget.querySelector('.widget-title')?.textContent?.trim() || 'widget';
     }
@@ -350,25 +378,45 @@ export function createUi(dom) {
     function getWidgetState() {
         const defaultOrder = [...dom.dashboardWidgetCards].map(widget => widget.dataset.widgetId);
         try {
-            const parsed = JSON.parse(window.localStorage.getItem(widgetStorageKey) || '{}');
+            const parsed = JSON.parse(getStoredWidgetState() || '{}');
             return {
                 order: Array.isArray(parsed.order) ? [...parsed.order, ...defaultOrder.filter(id => !parsed.order.includes(id))] : defaultOrder,
                 minimized: Array.isArray(parsed.minimized) ? parsed.minimized : [],
+                sizes: parsed.sizes && typeof parsed.sizes === 'object' ? parsed.sizes : {},
             };
         } catch {
             return {
                 order: defaultOrder,
                 minimized: [],
+                sizes: {},
             };
         }
     }
 
     function persistWidgetState() {
+        const widgets = [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget')];
         const state = {
-            order: [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget')].map(widget => widget.dataset.widgetId),
-            minimized: [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget.is-minimized')].map(widget => widget.dataset.widgetId),
+            order: widgets.map(widget => widget.dataset.widgetId),
+            minimized: widgets.filter(widget => widget.classList.contains('is-minimized')).map(widget => widget.dataset.widgetId),
+            sizes: Object.fromEntries(widgets.map(widget => [widget.dataset.widgetId, widget.dataset.widgetSize || 'full'])),
         };
-        window.localStorage.setItem(widgetStorageKey, JSON.stringify(state));
+        setStoredWidgetState(JSON.stringify(state));
+    }
+
+    function getStoredWidgetState() {
+        try {
+            return window.localStorage?.getItem(widgetStorageKey) || '';
+        } catch {
+            return '';
+        }
+    }
+
+    function setStoredWidgetState(value) {
+        try {
+            window.localStorage?.setItem(widgetStorageKey, value);
+        } catch {
+            // Widget controls still work for the current session when storage is unavailable.
+        }
     }
 
     function openAgentChat() {

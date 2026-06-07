@@ -86,7 +86,9 @@ export function createTaskController({
             ui.setTaskListStatus('Loading PocketBase tasks...');
         }
 
-        dom.refreshTasksButton.disabled = true;
+        if (dom.refreshTasksButton) {
+            dom.refreshTasksButton.disabled = true;
+        }
 
         try {
             const result = await pocketbase.fetchPocketBaseTasks(token);
@@ -110,7 +112,9 @@ export function createTaskController({
                 onSystemMessage(`Task load failed: ${error.message}`);
             }
         } finally {
-            dom.refreshTasksButton.disabled = false;
+            if (dom.refreshTasksButton) {
+                dom.refreshTasksButton.disabled = false;
+            }
         }
     }
 

@@ -1369,11 +1369,6 @@ body.is-authenticated .auth-screen {
   padding-top: 16px;
 }
 
-.task-refresh-bar {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .task-sync-bar input {
   min-width: 0;
   border: 1px solid rgba(35, 213, 255, 0.24);

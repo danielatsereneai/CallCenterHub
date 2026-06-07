@@ -94,7 +94,9 @@ function bindEvents() {
     dom.copyEmailResponseButton.addEventListener('click', copyEmailResponseDraft);
     dom.generateEmailResponseButton.addEventListener('click', generateEmailResponseDraft);
     dom.emailResponseModal.addEventListener('click', handleEmailResponseModalBackdropClick);
-    dom.refreshTasksButton.addEventListener('click', tasks.refreshPocketBaseData);
+    if (dom.refreshTasksButton) {
+        dom.refreshTasksButton.addEventListener('click', tasks.refreshPocketBaseData);
+    }
     dom.refreshBoardButton.addEventListener('click', tasks.refreshPocketBaseData);
     dom.newBoardTaskButton.addEventListener('click', tasks.openBoardTaskModal);
     dom.boardSelect.addEventListener('change', tasks.renderKanbanBoard);

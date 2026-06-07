@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
     tasks.hydratePocketBaseTokenInputs();
+    ui.initializeDashboardWidgets();
     hydrateAuthSession();
 
     bindEvents();
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function bindEvents() {
     dom.loginForm.addEventListener('submit', loginCommandUser);
+    dom.closeAnnouncementButton.addEventListener('click', ui.hideAnnouncement);
     dom.mySettingsButton.addEventListener('click', openSettingsModal);
     dom.logoutButton.addEventListener('click', logoutCommandUser);
     dom.closeSettingsModalButton.addEventListener('click', ui.closeSettingsModal);
@@ -69,6 +71,13 @@ function bindEvents() {
     dom.sendButton.addEventListener('click', chat.sendMessage);
     dom.modelSelect.addEventListener('change', chat.handleModelChange);
     dom.chatMessages.addEventListener('click', chat.handleChatActionClick);
+    dom.agentChatToggle.addEventListener('click', ui.toggleAgentChat);
+    dom.closeAgentChatButton.addEventListener('click', ui.closeAgentChat);
+    dom.dashboardWidgets.addEventListener('click', ui.handleWidgetControlClick);
+    dom.dashboardWidgets.addEventListener('dragstart', ui.handleWidgetDragStart);
+    dom.dashboardWidgets.addEventListener('dragover', ui.handleWidgetDragOver);
+    dom.dashboardWidgets.addEventListener('drop', ui.handleWidgetDrop);
+    dom.dashboardWidgets.addEventListener('dragend', ui.handleWidgetDragEnd);
 
     dom.newTaskTile.addEventListener('click', tasks.openTaskModal);
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);
@@ -107,6 +116,7 @@ function bindEvents() {
             chat.sendMessage();
         }
     });
+    document.addEventListener('keydown', handleGlobalKeydown);
 }
 
 function hydrateAuthSession() {
@@ -147,7 +157,7 @@ async function loginCommandUser(event) {
         persistAuthSession(authData);
         dom.loginPasswordInput.value = '';
         ui.setAuthStatus('Logged in.', 'success');
-        ui.addSystemMessage(`Logged in as ${getUserDisplayName(currentUser)}.`);
+        ui.addSystemMessage(`Logged in as ${getUserDisplayName(currentUser)}.`, 'success');
         await startAuthenticatedApp();
     } catch (error) {
         console.error('PocketBase login error:', error);
@@ -212,4 +222,10 @@ function handleNavClick(event) {
 
 function handleQuickLinkFilterClick(event) {
     ui.setQuickLinkFilter(event.currentTarget.dataset.quickLinkFilter);
+}
+
+function handleGlobalKeydown(event) {
+    if (event.key === 'Escape' && document.body.classList.contains('agent-chat-open')) {
+        ui.closeAgentChat();
+    }
 }

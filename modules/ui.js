@@ -10,6 +10,9 @@ import {
 export function collectDom() {
     return {
         authScreen: document.getElementById('authScreen'),
+        announcementBar: document.getElementById('announcementBar'),
+        announcementText: document.getElementById('announcementText'),
+        closeAnnouncementButton: document.getElementById('closeAnnouncementButton'),
         loginForm: document.getElementById('loginForm'),
         loginEmailInput: document.getElementById('loginEmail'),
         loginPasswordInput: document.getElementById('loginPassword'),
@@ -64,10 +67,19 @@ export function collectDom() {
         taskAssignedSelect: document.getElementById('taskAssigned'),
         quickLinkFilterButtons: document.querySelectorAll('[data-quick-link-filter]'),
         quickLinkCards: document.querySelectorAll('.quick-link-card'),
+        dashboardWidgets: document.getElementById('dashboardWidgets'),
+        dashboardWidgetCards: document.querySelectorAll('.dashboard-widget'),
+        agentChatToggle: document.getElementById('agentChatToggle'),
+        closeAgentChatButton: document.getElementById('closeAgentChatButton'),
+        chatPanel: document.getElementById('chat-panel'),
     };
 }
 
 export function createUi(dom) {
+    const widgetStorageKey = 'lifeAtPerchDashboardWidgets';
+    let announcementTimer = null;
+    let draggedWidgetId = '';
+
     function showAuthScreen() {
         document.body.classList.remove('is-authenticated');
         dom.authScreen.removeAttribute('hidden');
@@ -208,8 +220,28 @@ export function createUi(dom) {
         addMessage('message user-message', 'You', text);
     }
 
-    function addSystemMessage(text) {
-        addMessage('message system-message', 'System', text);
+    function addSystemMessage(text, type = 'info') {
+        showAnnouncement(text, type);
+    }
+
+    function showAnnouncement(text, type = 'info') {
+        if (!dom.announcementBar || !dom.announcementText) return;
+
+        window.clearTimeout(announcementTimer);
+        dom.announcementText.textContent = text;
+        dom.announcementBar.classList.remove('success', 'error', 'info');
+        dom.announcementBar.classList.add(type);
+        dom.announcementBar.hidden = false;
+
+        announcementTimer = window.setTimeout(() => {
+            hideAnnouncement();
+        }, 5200);
+    }
+
+    function hideAnnouncement() {
+        if (!dom.announcementBar) return;
+        dom.announcementBar.hidden = true;
+        window.clearTimeout(announcementTimer);
     }
 
     function addAIMessage(text, turnIndex) {
@@ -241,6 +273,127 @@ export function createUi(dom) {
         dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
     }
 
+    function initializeDashboardWidgets() {
+        const state = getWidgetState();
+        const widgetMap = new Map([...dom.dashboardWidgetCards].map(widget => [widget.dataset.widgetId, widget]));
+
+        state.order.forEach(widgetId => {
+            const widget = widgetMap.get(widgetId);
+            if (widget) dom.dashboardWidgets.appendChild(widget);
+        });
+
+        dom.dashboardWidgetCards.forEach(widget => {
+            const isMinimized = state.minimized.includes(widget.dataset.widgetId);
+            setWidgetMinimized(widget, isMinimized);
+        });
+    }
+
+    function handleWidgetControlClick(event) {
+        const toggleButton = event.target.closest('[data-widget-toggle]');
+        if (!toggleButton) return;
+
+        const widget = toggleButton.closest('.dashboard-widget');
+        if (!widget) return;
+
+        setWidgetMinimized(widget, !widget.classList.contains('is-minimized'));
+        persistWidgetState();
+    }
+
+    function handleWidgetDragStart(event) {
+        const widget = event.target.closest('.dashboard-widget');
+        if (!widget) return;
+
+        draggedWidgetId = widget.dataset.widgetId;
+        widget.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedWidgetId);
+    }
+
+    function handleWidgetDragOver(event) {
+        const targetWidget = event.target.closest('.dashboard-widget');
+        if (!targetWidget || !draggedWidgetId || targetWidget.dataset.widgetId === draggedWidgetId) return;
+
+        event.preventDefault();
+        const draggedWidget = dom.dashboardWidgets.querySelector(`[data-widget-id="${draggedWidgetId}"]`);
+        if (!draggedWidget) return;
+
+        const targetRect = targetWidget.getBoundingClientRect();
+        const insertAfter = event.clientY > targetRect.top + targetRect.height / 2;
+        dom.dashboardWidgets.insertBefore(draggedWidget, insertAfter ? targetWidget.nextSibling : targetWidget);
+    }
+
+    function handleWidgetDrop(event) {
+        if (!draggedWidgetId) return;
+        event.preventDefault();
+        persistWidgetState();
+    }
+
+    function handleWidgetDragEnd() {
+        dom.dashboardWidgetCards.forEach(widget => widget.classList.remove('is-dragging'));
+        draggedWidgetId = '';
+    }
+
+    function setWidgetMinimized(widget, isMinimized) {
+        const toggleButton = widget.querySelector('[data-widget-toggle]');
+        widget.classList.toggle('is-minimized', isMinimized);
+        if (toggleButton) {
+            toggleButton.textContent = isMinimized ? '+' : '-';
+            toggleButton.setAttribute('aria-label', `${isMinimized ? 'Expand' : 'Minimise'} ${getWidgetTitle(widget)}`);
+            toggleButton.setAttribute('aria-expanded', String(!isMinimized));
+        }
+    }
+
+    function getWidgetTitle(widget) {
+        return widget.querySelector('.widget-title')?.textContent?.trim() || 'widget';
+    }
+
+    function getWidgetState() {
+        const defaultOrder = [...dom.dashboardWidgetCards].map(widget => widget.dataset.widgetId);
+        try {
+            const parsed = JSON.parse(window.localStorage.getItem(widgetStorageKey) || '{}');
+            return {
+                order: Array.isArray(parsed.order) ? [...parsed.order, ...defaultOrder.filter(id => !parsed.order.includes(id))] : defaultOrder,
+                minimized: Array.isArray(parsed.minimized) ? parsed.minimized : [],
+            };
+        } catch {
+            return {
+                order: defaultOrder,
+                minimized: [],
+            };
+        }
+    }
+
+    function persistWidgetState() {
+        const state = {
+            order: [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget')].map(widget => widget.dataset.widgetId),
+            minimized: [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget.is-minimized')].map(widget => widget.dataset.widgetId),
+        };
+        window.localStorage.setItem(widgetStorageKey, JSON.stringify(state));
+    }
+
+    function openAgentChat() {
+        document.body.classList.add('agent-chat-open');
+        dom.chatPanel.setAttribute('aria-hidden', 'false');
+        dom.agentChatToggle.setAttribute('aria-expanded', 'true');
+        scrollToBottom();
+        dom.messageInput.focus();
+    }
+
+    function closeAgentChat() {
+        document.body.classList.remove('agent-chat-open');
+        dom.chatPanel.setAttribute('aria-hidden', 'true');
+        dom.agentChatToggle.setAttribute('aria-expanded', 'false');
+        dom.agentChatToggle.focus();
+    }
+
+    function toggleAgentChat() {
+        if (document.body.classList.contains('agent-chat-open')) {
+            closeAgentChat();
+        } else {
+            openAgentChat();
+        }
+    }
+
     return {
         showAuthScreen,
         showAppScreen,
@@ -258,6 +411,17 @@ export function createUi(dom) {
         addUserMessage,
         addAIMessage,
         addSystemMessage,
+        showAnnouncement,
+        hideAnnouncement,
         scrollToBottom,
+        initializeDashboardWidgets,
+        handleWidgetControlClick,
+        handleWidgetDragStart,
+        handleWidgetDragOver,
+        handleWidgetDrop,
+        handleWidgetDragEnd,
+        openAgentChat,
+        closeAgentChat,
+        toggleAgentChat,
     };
 }

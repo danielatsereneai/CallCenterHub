@@ -413,6 +413,24 @@
             </div>
 
             <form class="task-form" id="taskForm">
+                <section class="ai-task-draft full-field">
+                    <div class="ai-task-draft-header">
+                        <div>
+                            <span>AI Task Draft</span>
+                            <p>Send a prompt and pre-summary together to create a reviewable task API request.</p>
+                        </div>
+                        <button class="send-button" id="generateAiTaskButton" type="button">Create with AI</button>
+                    </div>
+                    <label>
+                        <span>Prompt</span>
+                        <textarea id="aiTaskPrompt" rows="3" placeholder="Tell the agent what task should be created..."></textarea>
+                    </label>
+                    <label>
+                        <span>Pre-summary</span>
+                        <textarea id="aiTaskSummary" rows="3" placeholder="Add any summary, context, customer details, or expected outcome..."></textarea>
+                    </label>
+                </section>
+
                 <label>
                     <span>Task Name</span>
                     <input id="taskName" name="task_name" type="text" placeholder="Name the task" required>

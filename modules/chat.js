@@ -262,6 +262,37 @@ export function createChatController({
         return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
     }
 
+    async function createTaskDraftFromInput({ prompt, preSummary, boardName = '' }) {
+        const userMessage = [
+            `Prompt:\n${String(prompt || '').trim()}`,
+            `Pre-summary:\n${String(preSummary || '').trim()}`,
+        ].filter(section => !section.endsWith('\n')).join('\n\n');
+
+        if (!isConnected) {
+            throw new Error('Not connected to Ollama. Please check your connection.');
+        }
+
+        if (isWaitingForResponse) {
+            throw new Error('Still waiting for a response. Please wait.');
+        }
+
+        const context = {
+            assistantMessage: String(preSummary || '').trim(),
+            boardName: boardName || getSelectedBoardName(),
+            chatHistory: [
+                {
+                    role: 'user',
+                    content: userMessage,
+                },
+            ],
+            turnIndex: -1,
+            userMessage,
+        };
+        const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
+        const parsedResponse = parseTaskFormatterResponse(formatterResponse);
+        return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
+    }
+
     function getTaskFormattingContext(turnIndex) {
         const assistantTurn = chatTurns[turnIndex] || {};
         const userTurn = findPreviousUserTurn(turnIndex);
@@ -442,5 +473,6 @@ ${JSON.stringify(promptInput, null, 2)}`;
         toggleDictation,
         sendMessage,
         handleChatActionClick,
+        createTaskDraftFromInput,
     };
 }

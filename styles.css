@@ -1155,8 +1155,14 @@ body.is-authenticated .auth-screen {
   padding: 16px;
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
   border-bottom: 1px solid var(--line);
+}
+
+.prompt-card.is-minimized .prompt-card-header {
+  align-items: center;
+  border-bottom: 0;
 }
 
 .prompt-card h3 {
@@ -1171,6 +1177,21 @@ body.is-authenticated .auth-screen {
   margin-top: 6px;
 }
 
+.prompt-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.prompt-toggle-button {
+  min-height: 36px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  color: var(--green);
+  background: #eef8f4;
+}
+
 .prompt-card pre {
   max-height: 460px;
   overflow: auto;
@@ -1181,6 +1202,11 @@ body.is-authenticated .auth-screen {
   font-size: 12px;
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+.prompt-card.is-minimized .prompt-card-purpose,
+.prompt-card.is-minimized .prompt-card-body {
+  display: none;
 }
 
 .quick-link-filter-button:hover,

@@ -73,6 +73,9 @@ function bindEvents() {
     dom.chatMessages.addEventListener('click', chat.handleChatActionClick);
     dom.agentChatToggle.addEventListener('click', ui.toggleAgentChat);
     dom.closeAgentChatButton.addEventListener('click', ui.closeAgentChat);
+    if (dom.promptLibrary) {
+        dom.promptLibrary.addEventListener('click', ui.handlePromptLibraryClick);
+    }
 
     dom.newTaskTile.addEventListener('click', tasks.openTaskModal);
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);

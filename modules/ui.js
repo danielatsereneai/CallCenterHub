@@ -224,13 +224,29 @@ export function createUi(dom) {
             <div class="prompt-card-header">
                 <div>
                     <h3>${escapeHtml(TASK_API_REQUEST_PROMPT.title)}</h3>
-                    <p>${escapeHtml(TASK_API_REQUEST_PROMPT.purpose)}</p>
+                    <p class="prompt-card-purpose">${escapeHtml(TASK_API_REQUEST_PROMPT.purpose)}</p>
                 </div>
-                <span class="chip">Static</span>
+                <div class="prompt-card-actions">
+                    <span class="chip">Static</span>
+                    <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="true">Minimise</button>
+                </div>
             </div>
-            <pre><code>${escapeHtml(TASK_API_REQUEST_PROMPT.prompt)}</code></pre>
+            <pre class="prompt-card-body"><code>${escapeHtml(TASK_API_REQUEST_PROMPT.prompt)}</code></pre>
         </article>
     `;
+    }
+
+    function handlePromptLibraryClick(event) {
+        const toggleButton = event.target.closest('[data-prompt-toggle]');
+        if (!toggleButton) return;
+
+        const promptCard = toggleButton.closest('.prompt-card');
+        if (!promptCard) return;
+
+        const isMinimized = !promptCard.classList.contains('is-minimized');
+        promptCard.classList.toggle('is-minimized', isMinimized);
+        toggleButton.textContent = isMinimized ? 'Expand' : 'Minimise';
+        toggleButton.setAttribute('aria-expanded', String(!isMinimized));
     }
 
     function addUserMessage(text) {
@@ -328,6 +344,7 @@ export function createUi(dom) {
         updateDateTimeDisplay,
         updateConnectionStatus,
         renderPromptLibrary,
+        handlePromptLibraryClick,
         addUserMessage,
         addAIMessage,
         addSystemMessage,

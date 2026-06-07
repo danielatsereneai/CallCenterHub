@@ -10,6 +10,7 @@ import {
 import { createTaskNameFromText, normalizeTaskStatus } from './utils.js';
 
 const TASK_API_REQUEST_URL = `/api/collections/${POCKETBASE_COLLECTION}/records`;
+const CHAT_MEMORY_MESSAGE_LIMIT = 20;
 
 export function createChatController({
     dom,
@@ -24,6 +25,7 @@ export function createChatController({
     let isWaitingForResponse = false;
     let selectedModel = defaultModel;
     let chatTurns = [];
+    let chatMemory = [];
     let speechRecognition = null;
     let isDictating = false;
     let dictationBaseText = '';
@@ -176,7 +178,11 @@ export function createChatController({
         ui.updateConnectionStatus(true);
 
         try {
-            const response = await queryOllama(message);
+            const response = await queryOllama(buildChatMemoryRequest(message));
+            rememberChatMessages(
+                { role: 'user', content: message },
+                { role: 'assistant', content: response },
+            );
             const turnIndex = chatTurns.push({ role: 'assistant', content: response }) - 1;
             ui.addAIMessage(response, turnIndex);
         } catch (error) {
@@ -190,7 +196,39 @@ export function createChatController({
         }
     }
 
-    async function queryOllama(prompt) {
+    function buildChatMemoryRequest(message) {
+        return capChatMemory([
+            ...chatMemory,
+            {
+                role: 'user',
+                content: message,
+            },
+        ]);
+    }
+
+    function buildSingleUserMessage(content) {
+        return [
+            {
+                role: 'user',
+                content,
+            },
+        ];
+    }
+
+    function rememberChatMessages(...messages) {
+        chatMemory = capChatMemory([
+            ...chatMemory,
+            ...messages,
+        ]);
+    }
+
+    function capChatMemory(messages) {
+        return messages
+            .filter(message => message?.role && String(message.content || '').trim())
+            .slice(-CHAT_MEMORY_MESSAGE_LIMIT);
+    }
+
+    async function queryOllama(messages) {
         dom.connectionStatus.textContent = 'Thinking...';
         dom.connectionStatus.classList.add('loading');
         dom.connectionStatus.classList.remove('ready');
@@ -203,12 +241,7 @@ export function createChatController({
                 },
                 body: JSON.stringify({
                     model: selectedModel,
-                    messages: [
-                        {
-                            role: 'user',
-                            content: prompt,
-                        },
-                    ],
+                    messages,
                     stream: false,
                 }),
             });
@@ -261,7 +294,9 @@ export function createChatController({
         updateSendButtonState();
 
         try {
-            const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
+            const formatterResponse = await queryOllama(
+                buildSingleUserMessage(buildTaskFormattingPrompt(context)),
+            );
             const parsedResponse = parseTaskFormatterResponse(formatterResponse);
             return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
         } catch (error) {
@@ -303,7 +338,9 @@ export function createChatController({
             turnIndex: -1,
             userMessage,
         };
-        const formatterResponse = await queryOllama(buildTaskFormattingPrompt(context));
+        const formatterResponse = await queryOllama(
+            buildSingleUserMessage(buildTaskFormattingPrompt(context)),
+        );
         const parsedResponse = parseTaskFormatterResponse(formatterResponse);
         return buildTaskDraftFromApiRequest(parsedResponse, context, formatterResponse);
     }

@@ -1450,7 +1450,7 @@ body.is-authenticated .auth-screen {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 90;
   display: none;
   place-items: center;
   padding: 24px;

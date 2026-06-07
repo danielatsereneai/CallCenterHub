@@ -70,8 +70,6 @@ export function collectDom() {
         taskAssignedSelect: document.getElementById('taskAssigned'),
         quickLinkFilterButtons: document.querySelectorAll('[data-quick-link-filter]'),
         quickLinkCards: document.querySelectorAll('.quick-link-card'),
-        dashboardWidgets: document.getElementById('dashboardWidgets'),
-        dashboardWidgetCards: document.querySelectorAll('.dashboard-widget'),
         agentChatToggle: document.getElementById('agentChatToggle'),
         closeAgentChatButton: document.getElementById('closeAgentChatButton'),
         chatPanel: document.getElementById('chat-panel'),
@@ -80,9 +78,7 @@ export function collectDom() {
 }
 
 export function createUi(dom) {
-    const widgetStorageKey = 'lifeAtPerchDashboardWidgets';
     let announcementTimer = null;
-    let draggedWidgetId = '';
 
     function showAuthScreen() {
         document.body.classList.remove('is-authenticated');
@@ -294,152 +290,6 @@ export function createUi(dom) {
         dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
     }
 
-    function initializeDashboardWidgets() {
-        const state = getWidgetState();
-        const widgetMap = new Map([...dom.dashboardWidgetCards].map(widget => [widget.dataset.widgetId, widget]));
-
-        state.order.forEach(widgetId => {
-            const widget = widgetMap.get(widgetId);
-            if (widget) dom.dashboardWidgets.appendChild(widget);
-        });
-
-        dom.dashboardWidgetCards.forEach(widget => {
-            const isMinimized = state.minimized.includes(widget.dataset.widgetId);
-            setWidgetSize(widget, state.sizes[widget.dataset.widgetId] || 'full');
-            setWidgetMinimized(widget, isMinimized);
-        });
-    }
-
-    function handleWidgetControlClick(event) {
-        const sizeButton = event.target.closest('[data-widget-size]');
-        const toggleButton = event.target.closest('[data-widget-toggle]');
-        if (!toggleButton && !sizeButton) return;
-
-        const widget = event.target.closest('.dashboard-widget');
-        if (!widget) return;
-
-        if (sizeButton) {
-            const currentSize = widget.dataset.widgetSize || 'full';
-            setWidgetSize(widget, currentSize === 'full' ? 'half' : 'full');
-        }
-
-        if (toggleButton) {
-            setWidgetMinimized(widget, !widget.classList.contains('is-minimized'));
-        }
-
-        persistWidgetState();
-    }
-
-    function handleWidgetDragStart(event) {
-        const widget = event.target.closest('.dashboard-widget');
-        if (!widget) return;
-
-        draggedWidgetId = widget.dataset.widgetId;
-        widget.classList.add('is-dragging');
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', draggedWidgetId);
-    }
-
-    function handleWidgetDragOver(event) {
-        const targetWidget = event.target.closest('.dashboard-widget');
-        if (!targetWidget || !draggedWidgetId || targetWidget.dataset.widgetId === draggedWidgetId) return;
-
-        event.preventDefault();
-        const draggedWidget = dom.dashboardWidgets.querySelector(`[data-widget-id="${draggedWidgetId}"]`);
-        if (!draggedWidget) return;
-
-        const targetRect = targetWidget.getBoundingClientRect();
-        const isSameRow = Math.abs(event.clientY - (targetRect.top + targetRect.height / 2)) < targetRect.height / 2;
-        const insertAfter = isSameRow
-            ? event.clientX > targetRect.left + targetRect.width / 2
-            : event.clientY > targetRect.top + targetRect.height / 2;
-        dom.dashboardWidgets.insertBefore(draggedWidget, insertAfter ? targetWidget.nextSibling : targetWidget);
-    }
-
-    function handleWidgetDrop(event) {
-        if (!draggedWidgetId) return;
-        event.preventDefault();
-        persistWidgetState();
-    }
-
-    function handleWidgetDragEnd() {
-        dom.dashboardWidgetCards.forEach(widget => widget.classList.remove('is-dragging'));
-        draggedWidgetId = '';
-    }
-
-    function setWidgetMinimized(widget, isMinimized) {
-        const toggleButton = widget.querySelector('[data-widget-toggle]');
-        widget.classList.toggle('is-minimized', isMinimized);
-        if (toggleButton) {
-            toggleButton.textContent = isMinimized ? '+' : '-';
-            toggleButton.setAttribute('aria-label', `${isMinimized ? 'Expand' : 'Minimise'} ${getWidgetTitle(widget)}`);
-            toggleButton.setAttribute('aria-expanded', String(!isMinimized));
-        }
-    }
-
-    function setWidgetSize(widget, size) {
-        const resolvedSize = size === 'half' ? 'half' : 'full';
-        const sizeButton = widget.querySelector('[data-widget-size]');
-        widget.dataset.widgetSize = resolvedSize;
-        widget.classList.toggle('widget-size-half', resolvedSize === 'half');
-        widget.classList.toggle('widget-size-full', resolvedSize === 'full');
-
-        if (sizeButton) {
-            const title = getWidgetTitle(widget);
-            sizeButton.textContent = resolvedSize === 'half' ? '↔' : '⇔';
-            sizeButton.setAttribute('aria-label', `Make ${title} ${resolvedSize === 'half' ? 'full width' : 'half width'}`);
-            sizeButton.setAttribute('aria-pressed', String(resolvedSize === 'half'));
-        }
-    }
-
-    function getWidgetTitle(widget) {
-        return widget.querySelector('.widget-title')?.textContent?.trim() || 'widget';
-    }
-
-    function getWidgetState() {
-        const defaultOrder = [...dom.dashboardWidgetCards].map(widget => widget.dataset.widgetId);
-        try {
-            const parsed = JSON.parse(getStoredWidgetState() || '{}');
-            return {
-                order: Array.isArray(parsed.order) ? [...parsed.order, ...defaultOrder.filter(id => !parsed.order.includes(id))] : defaultOrder,
-                minimized: Array.isArray(parsed.minimized) ? parsed.minimized : [],
-                sizes: parsed.sizes && typeof parsed.sizes === 'object' ? parsed.sizes : {},
-            };
-        } catch {
-            return {
-                order: defaultOrder,
-                minimized: [],
-                sizes: {},
-            };
-        }
-    }
-
-    function persistWidgetState() {
-        const widgets = [...dom.dashboardWidgets.querySelectorAll('.dashboard-widget')];
-        const state = {
-            order: widgets.map(widget => widget.dataset.widgetId),
-            minimized: widgets.filter(widget => widget.classList.contains('is-minimized')).map(widget => widget.dataset.widgetId),
-            sizes: Object.fromEntries(widgets.map(widget => [widget.dataset.widgetId, widget.dataset.widgetSize || 'full'])),
-        };
-        setStoredWidgetState(JSON.stringify(state));
-    }
-
-    function getStoredWidgetState() {
-        try {
-            return window.localStorage?.getItem(widgetStorageKey) || '';
-        } catch {
-            return '';
-        }
-    }
-
-    function setStoredWidgetState(value) {
-        try {
-            window.localStorage?.setItem(widgetStorageKey, value);
-        } catch {
-            // Widget controls still work for the current session when storage is unavailable.
-        }
-    }
-
     function openAgentChat() {
         document.body.classList.add('agent-chat-open');
         dom.chatPanel.setAttribute('aria-hidden', 'false');
@@ -484,12 +334,6 @@ export function createUi(dom) {
         showAnnouncement,
         hideAnnouncement,
         scrollToBottom,
-        initializeDashboardWidgets,
-        handleWidgetControlClick,
-        handleWidgetDragStart,
-        handleWidgetDragOver,
-        handleWidgetDrop,
-        handleWidgetDragEnd,
         openAgentChat,
         closeAgentChat,
         toggleAgentChat,

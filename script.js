@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
     tasks.hydratePocketBaseTokenInputs();
-    ui.initializeDashboardWidgets();
     hydrateAuthSession();
 
     bindEvents();
@@ -74,11 +73,6 @@ function bindEvents() {
     dom.chatMessages.addEventListener('click', chat.handleChatActionClick);
     dom.agentChatToggle.addEventListener('click', ui.toggleAgentChat);
     dom.closeAgentChatButton.addEventListener('click', ui.closeAgentChat);
-    dom.dashboardWidgets.addEventListener('click', ui.handleWidgetControlClick);
-    dom.dashboardWidgets.addEventListener('dragstart', ui.handleWidgetDragStart);
-    dom.dashboardWidgets.addEventListener('dragover', ui.handleWidgetDragOver);
-    dom.dashboardWidgets.addEventListener('drop', ui.handleWidgetDrop);
-    dom.dashboardWidgets.addEventListener('dragend', ui.handleWidgetDragEnd);
 
     dom.newTaskTile.addEventListener('click', tasks.openTaskModal);
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);

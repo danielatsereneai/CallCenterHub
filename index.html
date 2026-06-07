@@ -93,17 +93,12 @@
                 </div>
             </header>
 
-            <section class="dashboard-widgets home-view" id="dashboardWidgets" aria-label="Dashboard widgets">
-                <article class="dashboard-widget" data-widget-id="quickActions" draggable="true">
-                    <div class="widget-toolbar">
-                        <span class="widget-title">Quick Actions</span>
-                        <div class="widget-actions">
-                            <button class="widget-control" type="button" data-widget-drag aria-label="Move Quick Actions">↕</button>
-                            <button class="widget-control" type="button" data-widget-size aria-label="Resize Quick Actions">⇔</button>
-                            <button class="widget-control" type="button" data-widget-toggle aria-label="Minimise Quick Actions">−</button>
-                        </div>
+            <section class="dashboard-widgets home-view" id="dashboardWidgets" aria-label="Dashboard">
+                <article class="dashboard-section quick-actions-section">
+                    <div class="dashboard-section-header">
+                        <span class="dashboard-section-title">Quick Actions</span>
                     </div>
-                    <div class="widget-body">
+                    <div class="dashboard-section-body">
                         <section class="actions">
                             <article class="action-tile task-trigger" id="newTaskTile" role="button" tabindex="0">
                                 <div class="tile-icon">＋</div>
@@ -129,16 +124,11 @@
                     </div>
                 </article>
 
-                <article class="dashboard-widget" data-widget-id="quickLinks" draggable="true">
-                    <div class="widget-toolbar">
-                        <span class="widget-title">Quick Links</span>
-                        <div class="widget-actions">
-                            <button class="widget-control" type="button" data-widget-drag aria-label="Move Quick Links">↕</button>
-                            <button class="widget-control" type="button" data-widget-size aria-label="Resize Quick Links">⇔</button>
-                            <button class="widget-control" type="button" data-widget-toggle aria-label="Minimise Quick Links">−</button>
-                        </div>
+                <article class="dashboard-section quick-links-section">
+                    <div class="dashboard-section-header">
+                        <span class="dashboard-section-title">Quick Links</span>
                     </div>
-                    <div class="widget-body">
+                    <div class="dashboard-section-body">
                         <section class="placeholder-panel quick-links-panel">
                             <div class="panel-header">
                                 <span>Quick Links</span>
@@ -261,17 +251,12 @@
                     </div>
                 </article>
 
-                <article class="dashboard-widget" data-widget-id="pocketbaseTasks" draggable="true">
-                    <div class="widget-toolbar">
-                        <span class="widget-title">PocketBase Tasks</span>
-                        <div class="widget-actions">
-                            <span class="chip" id="taskCount">0</span>
-                            <button class="widget-control" type="button" data-widget-drag aria-label="Move PocketBase Tasks">↕</button>
-                            <button class="widget-control" type="button" data-widget-size aria-label="Resize PocketBase Tasks">⇔</button>
-                            <button class="widget-control" type="button" data-widget-toggle aria-label="Minimise PocketBase Tasks">−</button>
-                        </div>
+                <article class="dashboard-section tasks-section">
+                    <div class="dashboard-section-header">
+                        <span class="dashboard-section-title">PocketBase Tasks</span>
+                        <span class="chip" id="taskCount">0</span>
                     </div>
-                    <div class="widget-body">
+                    <div class="dashboard-section-body">
                         <section class="task-panel" id="taskPanel">
                             <div class="task-sync-bar">
                                 <input id="taskPanelToken" type="password" placeholder="PocketBase token">

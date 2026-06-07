@@ -1797,6 +1797,14 @@ body.is-authenticated .auth-screen {
   white-space: pre-wrap;
 }
 
+.copy-email-response-button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--green);
+  background: #eef8f4;
+}
+
 .email-response-input-panel {
   padding: 18px;
   display: grid;

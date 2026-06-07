@@ -91,6 +91,7 @@ function bindEvents() {
     dom.cancelTaskButton.addEventListener('click', tasks.closeTaskModal);
     dom.closeEmailResponseModalButton.addEventListener('click', ui.closeEmailResponseModal);
     dom.clearEmailResponseButton.addEventListener('click', ui.clearEmailResponseForm);
+    dom.copyEmailResponseButton.addEventListener('click', copyEmailResponseDraft);
     dom.generateEmailResponseButton.addEventListener('click', generateEmailResponseDraft);
     dom.emailResponseModal.addEventListener('click', handleEmailResponseModalBackdropClick);
     dom.refreshTasksButton.addEventListener('click', tasks.refreshPocketBaseData);
@@ -305,6 +306,44 @@ async function generateEmailResponseDraft() {
     } finally {
         dom.generateEmailResponseButton.disabled = false;
         dom.generateEmailResponseButton.textContent = 'Generate Response';
+    }
+}
+
+async function copyEmailResponseDraft() {
+    const responseText = dom.emailResponseOutput.textContent.trim();
+
+    if (!responseText || responseText === 'Generated response will appear here.') {
+        ui.setEmailResponseStatus('Generate a response before copying.', 'error');
+        return;
+    }
+
+    try {
+        await copyTextToClipboard(responseText);
+        ui.setEmailResponseStatus('Generated response copied.', 'success');
+    } catch (error) {
+        console.error('Copy email response error:', error);
+        ui.setEmailResponseStatus('Could not copy the response. Select the text and copy it manually.', 'error');
+    }
+}
+
+async function copyTextToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        document.execCommand('copy');
+    } finally {
+        document.body.removeChild(textarea);
     }
 }
 

@@ -103,6 +103,7 @@ export function collectDom() {
         emailSummaryFindingsInput: document.getElementById('emailSummaryFindings'),
         emailResponseOutput: document.getElementById('emailResponseOutput'),
         emailResponseStatus: document.getElementById('emailResponseStatus'),
+        copyEmailResponseButton: document.getElementById('copyEmailResponseButton'),
         generateEmailResponseButton: document.getElementById('generateEmailResponseButton'),
         clearEmailResponseButton: document.getElementById('clearEmailResponseButton'),
         refreshTasksButton: document.getElementById('refreshTasksButton'),

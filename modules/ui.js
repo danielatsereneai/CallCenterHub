@@ -45,7 +45,6 @@ export function collectDom() {
         taskForm: document.getElementById('taskForm'),
         taskFormStatus: document.getElementById('taskFormStatus'),
         saveTaskButton: document.getElementById('saveTaskButton'),
-        aiTaskPromptInput: document.getElementById('aiTaskPrompt'),
         aiTaskSummaryInput: document.getElementById('aiTaskSummary'),
         generateAiTaskButton: document.getElementById('generateAiTaskButton'),
         taskCommentCount: document.getElementById('taskCommentCount'),

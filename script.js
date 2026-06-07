@@ -224,12 +224,11 @@ function handleQuickLinkFilterClick(event) {
 }
 
 async function generateAiTaskDraft() {
-    const prompt = dom.aiTaskPromptInput.value.trim();
     const preSummary = dom.aiTaskSummaryInput.value.trim();
 
-    if (!prompt && !preSummary) {
-        ui.setTaskFormStatus('Add a prompt or pre-summary before creating an AI task draft.', 'error');
-        dom.aiTaskPromptInput.focus();
+    if (!preSummary) {
+        ui.setTaskFormStatus('Add a pre-summary before creating an AI task draft.', 'error');
+        dom.aiTaskSummaryInput.focus();
         return;
     }
 
@@ -239,7 +238,6 @@ async function generateAiTaskDraft() {
 
     try {
         const taskDraft = await chat.createTaskDraftFromInput({
-            prompt,
             preSummary,
             boardName: document.getElementById('taskBoardName').value.trim() || tasks.getSelectedBoardName(),
         });

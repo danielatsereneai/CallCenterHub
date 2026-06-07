@@ -312,11 +312,8 @@ export function createChatController({
         }
     }
 
-    async function createTaskDraftFromInput({ prompt, preSummary, boardName = '' }) {
-        const userMessage = [
-            `Prompt:\n${String(prompt || '').trim()}`,
-            `Pre-summary:\n${String(preSummary || '').trim()}`,
-        ].filter(section => !section.endsWith('\n')).join('\n\n');
+    async function createTaskDraftFromInput({ preSummary, boardName = '' }) {
+        const userMessage = String(preSummary || '').trim();
 
         if (!isConnected) {
             throw new Error('Not connected to Ollama. Please check your connection.');
@@ -327,7 +324,7 @@ export function createChatController({
         }
 
         const context = {
-            assistantMessage: String(preSummary || '').trim(),
+            assistantMessage: '',
             boardName: boardName || getSelectedBoardName(),
             chatHistory: [
                 {

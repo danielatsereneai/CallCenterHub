@@ -76,6 +76,21 @@ Rules:
 - Use the relative URL "/api/collections/base_start_tasks/records".`,
 };
 
+export const EMAIL_RESPONSE_PROMPT = {
+    title: 'AI Email Response',
+    purpose: 'Draft a customer email response from the customer email and internal summary findings.',
+    prompt: `You are an AI writing assistant for the Correspondence Team.
+
+Draft a clear, professional email response to the customer using only the customer email and the user's summary findings.
+
+Rules:
+- Do not invent facts, promises, dates, amounts, or outcomes.
+- If a detail is missing, keep the response appropriately cautious.
+- Use a warm, concise, professional UK business tone.
+- Do not include internal notes or analysis.
+- Return only the email response body.`,
+};
+
 export const TASK_STATUSES = [
     { id: 'new', label: 'New' },
     { id: 'todo', label: 'To Do' },

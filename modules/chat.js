@@ -1,6 +1,7 @@
 import {
     AVAILABLE_MODELS,
     DEFAULT_OLLAMA_MODEL,
+    EMAIL_RESPONSE_PROMPT,
     LIFE_AT_PERCH_AREAS,
     OLLAMA_BASE_URL,
     POCKETBASE_COLLECTION,
@@ -410,16 +411,7 @@ ${JSON.stringify(promptInput, null, 2)}`;
     }
 
     function buildEmailResponsePrompt({ customerResponse, summaryFindings }) {
-        return `You are an AI writing assistant for the Correspondence Team.
-
-Draft a clear, professional email response to the customer using only the customer email and the user's summary findings.
-
-Rules:
-- Do not invent facts, promises, dates, amounts, or outcomes.
-- If a detail is missing, keep the response appropriately cautious.
-- Use a warm, concise, professional UK business tone.
-- Do not include internal notes or analysis.
-- Return only the email response body.
+        return `${EMAIL_RESPONSE_PROMPT.prompt}
 
 Customer response:
 ${customerResponse}

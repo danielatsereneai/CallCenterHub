@@ -1,4 +1,4 @@
-import { DEFAULT_QUICK_LINK_FILTER, TASK_API_REQUEST_PROMPT } from './config.js';
+import { DEFAULT_QUICK_LINK_FILTER, EMAIL_RESPONSE_PROMPT, TASK_API_REQUEST_PROMPT } from './config.js';
 import {
     escapeHtml,
     formatBoolean,
@@ -8,6 +8,10 @@ import {
 } from './utils.js';
 
 const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
+const PROMPT_LIBRARY_ITEMS = [
+    TASK_API_REQUEST_PROMPT,
+    EMAIL_RESPONSE_PROMPT,
+];
 const TEAM_DASHBOARDS = [
     {
         id: 'qc',
@@ -472,21 +476,21 @@ export function createUi(dom) {
     function renderPromptLibrary() {
         if (!dom.promptLibrary) return;
 
-        dom.promptLibrary.innerHTML = `
+        dom.promptLibrary.innerHTML = PROMPT_LIBRARY_ITEMS.map(promptItem => `
         <article class="prompt-card">
             <div class="prompt-card-header">
                 <div>
-                    <h3>${escapeHtml(TASK_API_REQUEST_PROMPT.title)}</h3>
-                    <p class="prompt-card-purpose">${escapeHtml(TASK_API_REQUEST_PROMPT.purpose)}</p>
+                    <h3>${escapeHtml(promptItem.title)}</h3>
+                    <p class="prompt-card-purpose">${escapeHtml(promptItem.purpose)}</p>
                 </div>
                 <div class="prompt-card-actions">
                     <span class="chip">Static</span>
                     <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="true">Minimise</button>
                 </div>
             </div>
-            <pre class="prompt-card-body"><code>${escapeHtml(TASK_API_REQUEST_PROMPT.prompt)}</code></pre>
+            <pre class="prompt-card-body"><code>${escapeHtml(promptItem.prompt)}</code></pre>
         </article>
-    `;
+    `).join('');
     }
 
     function handlePromptLibraryClick(event) {

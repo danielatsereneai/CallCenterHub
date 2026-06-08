@@ -1,5 +1,6 @@
 import {
     POCKETBASE_BASE_URL,
+    POCKETBASE_COMMENT_COLLECTION,
     POCKETBASE_COLLECTION,
     POCKETBASE_USER_COLLECTION,
 } from './config.js';
@@ -7,6 +8,7 @@ import { appendFormDataValue } from './utils.js';
 
 export function createPocketBaseClient({
     baseUrl = POCKETBASE_BASE_URL,
+    commentCollection = POCKETBASE_COMMENT_COLLECTION,
     taskCollection = POCKETBASE_COLLECTION,
     userCollection = POCKETBASE_USER_COLLECTION,
 } = {}) {
@@ -152,10 +154,8 @@ export function createPocketBaseClient({
     }
 
     async function updatePocketBaseTask(recordId, taskData, token, includeBoardAlias = true) {
-        const headers = {
-            ...buildAuthHeaders(token),
-            'Content-Type': 'application/json',
-        };
+        const hasAttachment = Boolean(taskData.attatchemnt);
+        const headers = buildAuthHeaders(token);
         const payload = {
             due_date: taskData.due_date,
             task_name: taskData.task_name,
@@ -175,10 +175,22 @@ export function createPocketBaseClient({
             payload.assigned = taskData.assigned;
         }
 
+        let body;
+        if (hasAttachment) {
+            body = new FormData();
+            Object.entries(payload).forEach(([key, value]) => {
+                appendFormDataValue(body, key, key === 'Json' ? JSON.stringify(value) : value);
+            });
+            body.append('attatchemnt', taskData.attatchemnt);
+        } else {
+            headers['Content-Type'] = 'application/json';
+            body = JSON.stringify(payload);
+        }
+
         const response = await fetch(`${baseUrl}/api/collections/${taskCollection}/records/${encodeURIComponent(recordId)}`, {
             method: 'PATCH',
             headers,
-            body: JSON.stringify(payload),
+            body,
         });
         return parseOrThrow(response);
     }
@@ -209,6 +221,38 @@ export function createPocketBaseClient({
         return parseOrThrow(response);
     }
 
+    async function fetchTaskComments(recordId, token) {
+        const params = new URLSearchParams({
+            page: '1',
+            perPage: '100',
+            sort: 'created',
+            filter: `task_id = ${JSON.stringify(recordId)}`,
+        });
+        const response = await fetch(`${baseUrl}/api/collections/${commentCollection}/records?${params}`, {
+            method: 'GET',
+            headers: buildAuthHeaders(token),
+        });
+        return parseOrThrow(response);
+    }
+
+    async function createTaskComment(recordId, comment, token) {
+        const response = await fetch(`${baseUrl}/api/collections/${commentCollection}/records`, {
+            method: 'POST',
+            headers: {
+                ...buildAuthHeaders(token),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                task_id: recordId,
+                body: comment.body,
+                user_id: comment.user_id,
+                user_name: comment.user_name,
+                user_email: comment.user_email,
+            }),
+        });
+        return parseOrThrow(response);
+    }
+
     return {
         authenticateCommandUser,
         loadAvailableUsers,
@@ -218,6 +262,8 @@ export function createPocketBaseClient({
         updatePocketBaseTask,
         patchPocketBaseTaskStatus,
         patchPocketBaseTaskComments,
+        fetchTaskComments,
+        createTaskComment,
     };
 }
 

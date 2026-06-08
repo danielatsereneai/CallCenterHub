@@ -52,9 +52,12 @@ The deployed browser app cannot call a developer machine's `localhost`. Put a co
 
 The gateway should enforce the client project's access policy and only expose the endpoints this app needs.
 
+Before production release, document who can access the gateway, whether prompts are logged, how long logs are retained, how rate limits are enforced, and whether customer or agent data is allowed in prompts. Do not release the AI email or feedback tools until that policy is approved for the client.
+
 ## 5. Run Locally
 
 ```bash
+npm run verify
 python3 -m http.server 4177
 ```
 
@@ -82,13 +85,18 @@ Root directory: repository root
 
 5. Deploy.
 6. Add the deployed Pages URL to PocketBase CORS.
-7. Re-test login, task loading, task save/update, Kanban movement, and chat.
+7. Confirm the Pages `_headers` file is deployed.
+8. Complete `docs/release-verification.md`.
+9. Re-test login, task loading, task save/update, Kanban movement, task chat, feedback save/reload, and chat.
 
 ## Release Checklist
 
 - `modules/config.js` points at client service URLs.
 - PocketBase collections and rules are in place.
+- The `base_start_task_comments` collection is in place.
+- `npm run verify` passes.
 - Users are created in PocketBase Admin UI.
 - Cloudflare Pages is connected to the GitHub repository.
+- Cloudflare Pages deployed `_headers` and `_redirects`.
 - PocketBase CORS includes local development and Pages domains.
 - No browser screen asks for a PocketBase superuser token.

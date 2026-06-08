@@ -13,8 +13,8 @@ export function escapeHtml(text) {
 }
 
 export function getUserDisplayName(user) {
-    if (!user) return 'Command User';
-    return user.name || user.email || user.id || 'Command User';
+    if (!user) return 'Life@Perch User';
+    return user.name || user.email || user.id || 'Life@Perch User';
 }
 
 export function getUserInitials(name) {
@@ -168,5 +168,26 @@ export function appendFormDataValue(formData, key, value) {
 
     if (value !== null && value !== undefined && value !== '') {
         formData.append(key, value);
+    }
+}
+
+export async function copyTextToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        document.execCommand('copy');
+    } finally {
+        document.body.removeChild(textarea);
     }
 }

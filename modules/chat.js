@@ -12,6 +12,7 @@ import { createTaskNameFromText, normalizeTaskStatus } from './utils.js';
 
 const TASK_API_REQUEST_URL = `/api/collections/${POCKETBASE_COLLECTION}/records`;
 const CHAT_MEMORY_MESSAGE_LIMIT = 20;
+const AI_REQUEST_TIMEOUT_MS = 60000;
 
 export function createChatController({
     dom,
@@ -241,10 +242,13 @@ export function createChatController({
         dom.connectionStatus.textContent = 'Thinking...';
         dom.connectionStatus.classList.add('loading');
         dom.connectionStatus.classList.remove('ready');
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
 
         try {
             const response = await fetch(`${baseUrl}/api/chat`, {
                 method: 'POST',
+                signal: controller.signal,
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -268,8 +272,12 @@ export function createChatController({
             throw new Error('No response from model');
         } catch (error) {
             console.error('Ollama query error:', error);
+            if (error.name === 'AbortError') {
+                throw new Error('AI request timed out. Please try again.');
+            }
             throw error;
         } finally {
+            window.clearTimeout(timeoutId);
             dom.connectionStatus.textContent = 'Ready';
             dom.connectionStatus.classList.remove('loading');
             dom.connectionStatus.classList.add('ready');

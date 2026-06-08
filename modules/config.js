@@ -1,10 +1,16 @@
 // Client setup: replace these placeholders after creating a project from the template.
 // Cloudflare Pages deployments need public HTTPS endpoints for both services.
-export const OLLAMA_BASE_URL = 'https://api.sereneai.co.uk';
-export const POCKETBASE_BASE_URL = 'https://pocketbase.sereneai.co.uk';
-export const POCKETBASE_COLLECTION = 'base_start_tasks';
-export const POCKETBASE_USER_COLLECTION = 'base_start_users';
-export const POCKETBASE_TOKEN_STORAGE_KEY = 'baseStartPocketBaseToken';
+const RUNTIME_CONFIG = globalThis.LIFE_AT_PERCH_CONFIG || {};
+
+function getRuntimeConfigValue(key, fallback) {
+    return String(RUNTIME_CONFIG[key] || fallback).trim();
+}
+
+export const OLLAMA_BASE_URL = getRuntimeConfigValue('OLLAMA_BASE_URL', 'https://api.sereneai.co.uk');
+export const POCKETBASE_BASE_URL = getRuntimeConfigValue('POCKETBASE_BASE_URL', 'https://pocketbase.sereneai.co.uk');
+export const POCKETBASE_COLLECTION = getRuntimeConfigValue('POCKETBASE_COLLECTION', 'base_start_tasks');
+export const POCKETBASE_USER_COLLECTION = getRuntimeConfigValue('POCKETBASE_USER_COLLECTION', 'base_start_users');
+export const POCKETBASE_COMMENT_COLLECTION = getRuntimeConfigValue('POCKETBASE_COMMENT_COLLECTION', 'base_start_task_comments');
 export const POCKETBASE_AUTH_STORAGE_KEY = 'baseStartAuth';
 
 export const DEFAULT_QUICK_LINK_FILTER = 'perchgroup';
@@ -22,6 +28,39 @@ export const LIFE_AT_PERCH_AREAS = [
     { id: 'connect', label: 'Connect', websiteUrl: 'https://www.perchconnect.co.uk/' },
     { id: 'tml', label: 'TML', websiteUrl: 'https://www.tm-legalservices.co.uk/' },
     { id: 'verify', label: 'Verify', websiteUrl: 'https://www.verify-connect.co.uk/' },
+];
+
+export const TEAM_DASHBOARDS = [
+    {
+        id: 'qc',
+        shortName: 'QC',
+        name: 'QC - Quality Control',
+        description: 'Quality control checks, review workflows, and team links.',
+        icon: 'QC',
+        actions: [
+            { icon: '✎', title: 'Feedback Submissions', text: 'Rewrite agent feedback into coaching notes before saving.', tool: 'feedbackSubmissions' },
+        ],
+        links: [
+            { label: 'Mail', title: 'Outlook', detail: 'QC mail', url: 'https://outlook.office.com/mail/' },
+            { label: 'Team', title: 'Teams', detail: 'QC Teams', url: 'https://teams.microsoft.com/' },
+            { label: 'Web', title: 'Quality Hub', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
+        ],
+    },
+    {
+        id: 'correspondence',
+        shortName: 'COR',
+        name: 'Correspondence Team',
+        description: 'Correspondence handling, shared comms, and team workflow links.',
+        icon: 'COR',
+        actions: [
+            { icon: 'AI', title: 'AI Email Response', text: 'Draft a customer email reply from the email and your findings.', tool: 'aiEmailResponse' },
+        ],
+        links: [
+            { label: 'Mail', title: 'Outlook', detail: 'Correspondence mail', url: 'https://outlook.office.com/mail/' },
+            { label: 'Team', title: 'Teams', detail: 'Correspondence Teams', url: 'https://teams.microsoft.com/' },
+            { label: 'Web', title: 'PerchGroup', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
+        ],
+    },
 ];
 
 export const AGENT_CHAT_PROMPT = {

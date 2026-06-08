@@ -1,4 +1,4 @@
-import { DEFAULT_QUICK_LINK_FILTER } from './config.js';
+import { DEFAULT_QUICK_LINK_FILTER, TEAM_DASHBOARDS } from './config.js';
 import {
     getPromptLibraryItems,
     resetPromptText,
@@ -6,6 +6,7 @@ import {
 } from './prompts.js';
 import {
     escapeHtml,
+    copyTextToClipboard,
     formatBoolean,
     formatDateTime,
     getUserDisplayName,
@@ -16,38 +17,6 @@ import {
 } from './utils.js';
 
 const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
-const TEAM_DASHBOARDS = [
-    {
-        id: 'qc',
-        shortName: 'QC',
-        name: 'QC - Quality Control',
-        description: 'Quality control checks, review workflows, and team links.',
-        icon: 'QC',
-        actions: [
-            { icon: '✎', title: 'Feedback Submissions', text: 'Rewrite agent feedback into coaching notes before saving.', tool: 'feedbackSubmissions' },
-        ],
-        links: [
-            { label: 'Mail', title: 'Outlook', detail: 'QC mail', url: 'https://outlook.office.com/mail/' },
-            { label: 'Team', title: 'Teams', detail: 'QC Teams', url: 'https://teams.microsoft.com/' },
-            { label: 'Web', title: 'Quality Hub', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
-        ],
-    },
-    {
-        id: 'correspondence',
-        shortName: 'COR',
-        name: 'Correspondence Team',
-        description: 'Correspondence handling, shared comms, and team workflow links.',
-        icon: 'COR',
-        actions: [
-            { icon: 'AI', title: 'AI Email Response', text: 'Draft a customer email reply from the email and your findings.', tool: 'aiEmailResponse' },
-        ],
-        links: [
-            { label: 'Mail', title: 'Outlook', detail: 'Correspondence mail', url: 'https://outlook.office.com/mail/' },
-            { label: 'Team', title: 'Teams', detail: 'Correspondence Teams', url: 'https://teams.microsoft.com/' },
-            { label: 'Web', title: 'PerchGroup', detail: 'Team workspace', url: 'https://www.perchgroup.co.uk/' },
-        ],
-    },
-];
 
 export function collectDom() {
     return {
@@ -110,10 +79,8 @@ export function collectDom() {
         addTaskCommentButton: document.getElementById('addTaskCommentButton'),
         taskList: document.getElementById('taskList'),
         taskCount: document.getElementById('taskCount'),
-        pocketbaseTokenInput: document.getElementById('pocketbaseToken'),
         taskIdInput: document.getElementById('taskId'),
         taskModalTitle: document.getElementById('taskModalTitle'),
-        taskPanelTokenInput: document.getElementById('taskPanelToken'),
         emailResponseModal: document.getElementById('emailResponseModal'),
         closeEmailResponseModalButton: document.getElementById('closeEmailResponseModal'),
         emailCustomerResponseInput: document.getElementById('emailCustomerResponse'),
@@ -123,7 +90,6 @@ export function collectDom() {
         copyEmailResponseButton: document.getElementById('copyEmailResponseButton'),
         generateEmailResponseButton: document.getElementById('generateEmailResponseButton'),
         clearEmailResponseButton: document.getElementById('clearEmailResponseButton'),
-        refreshTasksButton: document.getElementById('refreshTasksButton'),
         mainNavList: document.getElementById('mainNavList'),
         navItems: document.querySelectorAll('.nav-item[data-view]'),
         homeViewElements: document.querySelectorAll('.home-view'),
@@ -665,27 +631,6 @@ export function createUi(dom) {
         } catch (error) {
             console.error('Prompt copy error:', error);
             addSystemMessage('Prompt could not be copied. Select the prompt text and copy it manually.', 'error');
-        }
-    }
-
-    async function copyTextToClipboard(text) {
-        if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(text);
-            return;
-        }
-
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        try {
-            document.execCommand('copy');
-        } finally {
-            document.body.removeChild(textarea);
         }
     }
 

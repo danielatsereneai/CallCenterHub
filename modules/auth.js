@@ -1,6 +1,7 @@
-export function createSessionStore({ authStorageKey, tokenStorageKey }) {
+export function createSessionStore({ authStorageKey }) {
     function hydrateAuthSession() {
-        const storedAuth = localStorage.getItem(authStorageKey);
+        const storedAuth = sessionStorage.getItem(authStorageKey) || localStorage.getItem(authStorageKey);
+        localStorage.removeItem(authStorageKey);
         if (!storedAuth) return { record: null, token: '' };
 
         try {
@@ -16,7 +17,8 @@ export function createSessionStore({ authStorageKey, tokenStorageKey }) {
     }
 
     function persistAuthSession(authData) {
-        localStorage.setItem(authStorageKey, JSON.stringify({
+        localStorage.removeItem(authStorageKey);
+        sessionStorage.setItem(authStorageKey, JSON.stringify({
             token: authData.token,
             record: authData.record,
         }));
@@ -24,30 +26,12 @@ export function createSessionStore({ authStorageKey, tokenStorageKey }) {
 
     function clearAuthSession() {
         localStorage.removeItem(authStorageKey);
-    }
-
-    function hydratePocketBaseToken() {
-        return sessionStorage.getItem(tokenStorageKey) || '';
-    }
-
-    function persistPocketBaseToken(token) {
-        if (token) {
-            sessionStorage.setItem(tokenStorageKey, token);
-        } else {
-            sessionStorage.removeItem(tokenStorageKey);
-        }
-    }
-
-    function clearPocketBaseToken() {
-        sessionStorage.removeItem(tokenStorageKey);
+        sessionStorage.removeItem(authStorageKey);
     }
 
     return {
         hydrateAuthSession,
         persistAuthSession,
         clearAuthSession,
-        hydratePocketBaseToken,
-        persistPocketBaseToken,
-        clearPocketBaseToken,
     };
 }

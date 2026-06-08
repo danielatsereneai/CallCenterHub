@@ -1,6 +1,7 @@
 .DS_Store
 Thumbs.db
 .vscode/
+.codex-mobile-review/
 
 node_modules/
 dist/

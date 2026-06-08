@@ -1,7 +1,6 @@
 import {
     DEFAULT_QUICK_LINK_FILTER,
     POCKETBASE_AUTH_STORAGE_KEY,
-    POCKETBASE_TOKEN_STORAGE_KEY,
 } from './modules/config.js';
 import { createSessionStore } from './modules/auth.js';
 import { createChatController } from './modules/chat.js';
@@ -9,13 +8,12 @@ import { createFeedbackController } from './modules/feedback.js';
 import { createPocketBaseClient } from './modules/pocketbaseClient.js';
 import { createTaskController } from './modules/tasks.js';
 import { collectDom, createUi } from './modules/ui.js';
-import { getUserDisplayName, isAdminUser } from './modules/utils.js';
+import { copyTextToClipboard, getUserDisplayName, isAdminUser } from './modules/utils.js';
 
 const dom = collectDom();
 const ui = createUi(dom);
 const session = createSessionStore({
     authStorageKey: POCKETBASE_AUTH_STORAGE_KEY,
-    tokenStorageKey: POCKETBASE_TOKEN_STORAGE_KEY,
 });
 const pocketbase = createPocketBaseClient();
 
@@ -26,7 +24,6 @@ const tasks = createTaskController({
     dom,
     ui,
     pocketbase,
-    session,
     getCurrentUser: () => currentUser,
     getCurrentUserToken: () => currentUserToken,
     onSystemMessage: message => ui.addSystemMessage(message),
@@ -54,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     syncPromptEditPermission();
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
-    tasks.hydratePocketBaseTokenInputs();
     ui.renderOperationsTeams();
     ui.renderPinnedTeamNav();
 
@@ -119,18 +115,9 @@ function bindEvents() {
     dom.copyEmailResponseButton.addEventListener('click', copyEmailResponseDraft);
     dom.generateEmailResponseButton.addEventListener('click', generateEmailResponseDraft);
     dom.emailResponseModal.addEventListener('click', handleEmailResponseModalBackdropClick);
-    if (dom.refreshTasksButton) {
-        dom.refreshTasksButton.addEventListener('click', tasks.refreshPocketBaseData);
-    }
     dom.refreshBoardButton.addEventListener('click', tasks.refreshPocketBaseData);
     dom.newBoardTaskButton.addEventListener('click', tasks.openBoardTaskModal);
     dom.boardSelect.addEventListener('change', tasks.renderKanbanBoard);
-    if (dom.taskPanelTokenInput) {
-        dom.taskPanelTokenInput.addEventListener('change', tasks.syncPocketBaseTokenFromPanel);
-    }
-    if (dom.pocketbaseTokenInput) {
-        dom.pocketbaseTokenInput.addEventListener('change', tasks.syncPocketBaseTokenFromModal);
-    }
     dom.taskModal.addEventListener('click', tasks.handleTaskModalBackdropClick);
     dom.taskForm.addEventListener('submit', tasks.saveTask);
     dom.generateAiTaskButton.addEventListener('click', generateAiTaskDraft);
@@ -374,27 +361,6 @@ async function copyEmailResponseDraft() {
     } catch (error) {
         console.error('Copy email response error:', error);
         ui.setEmailResponseStatus('Could not copy the response. Select the text and copy it manually.', 'error');
-    }
-}
-
-async function copyTextToClipboard(text) {
-    if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-
-    try {
-        document.execCommand('copy');
-    } finally {
-        document.body.removeChild(textarea);
     }
 }
 

@@ -1,4 +1,9 @@
-import { LIFE_AT_PERCH_AREAS, TASK_STATUSES } from './config.js';
+import {
+    LIFE_AT_PERCH_AREAS,
+    POCKETBASE_BASE_URL,
+    POCKETBASE_COLLECTION,
+    TASK_STATUSES,
+} from './config.js';
 import {
     escapeHtml,
     formatDateTime,
@@ -19,7 +24,6 @@ export function createTaskController({
     dom,
     ui,
     pocketbase,
-    session,
     getCurrentUser,
     getCurrentUserToken,
     onSystemMessage,
@@ -29,34 +33,10 @@ export function createTaskController({
     let taskJsonDraft = {};
     let draggedTaskIndex = null;
     let dashboardTaskPage = 0;
-
-    function hydratePocketBaseTokenInputs() {
-        const token = session.hydratePocketBaseToken();
-        if (dom.pocketbaseTokenInput) {
-            dom.pocketbaseTokenInput.value = token;
-        }
-        if (dom.taskPanelTokenInput) {
-            dom.taskPanelTokenInput.value = token;
-        }
-    }
-
-    function syncPocketBaseTokenFromPanel() {
-        if (!dom.taskPanelTokenInput) return;
-        session.persistPocketBaseToken(dom.taskPanelTokenInput.value.trim());
-        hydratePocketBaseTokenInputs();
-    }
-
-    function syncPocketBaseTokenFromModal() {
-        if (!dom.pocketbaseTokenInput) return;
-        session.persistPocketBaseToken(dom.pocketbaseTokenInput.value.trim());
-        hydratePocketBaseTokenInputs();
-    }
+    const commentsByTaskId = new Map();
 
     function getPocketBaseAuthToken() {
-        return dom.taskPanelTokenInput?.value.trim()
-            || session.hydratePocketBaseToken()
-            || getCurrentUserToken()
-            || '';
+        return getCurrentUserToken() || '';
     }
 
     async function refreshPocketBaseData() {
@@ -66,6 +46,13 @@ export function createTaskController({
 
     async function loadAvailableUsers(options = {}) {
         const token = getPocketBaseAuthToken();
+        const currentUser = getCurrentUser();
+
+        if (!isAdminUser(currentUser)) {
+            availableUsers = currentUser ? [currentUser] : [];
+            populateAssignedSelect(dom.taskAssignedSelect.value);
+            return;
+        }
 
         try {
             const result = await pocketbase.loadAvailableUsers(token);
@@ -83,17 +70,10 @@ export function createTaskController({
     }
 
     async function loadPocketBaseTasks(options = {}) {
-        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
-        session.persistPocketBaseToken(enteredToken);
-        hydratePocketBaseTokenInputs();
-        const token = enteredToken || getCurrentUserToken();
+        const token = getCurrentUserToken();
 
         if (!options.silent) {
             ui.setTaskListStatus('Loading PocketBase tasks...');
-        }
-
-        if (dom.refreshTasksButton) {
-            dom.refreshTasksButton.disabled = true;
         }
 
         try {
@@ -113,16 +93,12 @@ export function createTaskController({
             console.error('PocketBase task load error:', error);
             savedTasks = [];
             dom.taskCount.textContent = '0';
-            ui.setTaskListStatus(`${error.message} Add a token if this collection is private.`, 'error');
+            ui.setTaskListStatus(error.message, 'error');
             populateBoardSelect();
             renderKanbanBoard();
 
             if (!options.silent) {
                 onSystemMessage(`Task load failed: ${error.message}`);
-            }
-        } finally {
-            if (dom.refreshTasksButton) {
-                dom.refreshTasksButton.disabled = false;
             }
         }
     }
@@ -130,6 +106,7 @@ export function createTaskController({
     function clearTaskState() {
         availableUsers = [];
         savedTasks = [];
+        commentsByTaskId.clear();
         dashboardTaskPage = 0;
         renderSavedTasks();
         populateAssignedSelect();
@@ -203,7 +180,7 @@ export function createTaskController({
         dom.taskForm.reset();
         taskJsonDraft = {};
         renderTaskComments();
-        hydratePocketBaseTokenInputs();
+        renderCurrentAttachment(null);
         populateAssignedSelect(getCurrentUser() ? getUserAssignmentValue(getCurrentUser()) : '');
         dom.taskIdInput.value = Date.now();
         document.getElementById('taskStatus').value = 'new';
@@ -225,7 +202,7 @@ export function createTaskController({
         dom.taskForm.reset();
         taskJsonDraft = {};
         renderTaskComments();
-        hydratePocketBaseTokenInputs();
+        renderCurrentAttachment(null);
         fillTaskDraft(taskDraft);
         ui.setTaskFormStatus('Review the task raised from chat, then save it to PocketBase.');
         dom.taskModal.classList.add('open');
@@ -240,6 +217,7 @@ export function createTaskController({
         setTaskFormMode('edit');
         dom.taskModal.dataset.recordId = task.id || '';
         fillTaskForm(task);
+        loadTaskCommentsForModal(task.id);
         ui.setTaskFormStatus('Update this PocketBase task, then save your changes.');
         dom.taskModal.classList.add('open');
         dom.taskModal.setAttribute('aria-hidden', 'false');
@@ -456,12 +434,16 @@ export function createTaskController({
         ui.setTaskFormStatus('Sending task chat message...');
 
         try {
-            const updatedTask = buildTaskWithComment(task, commentText);
-            const record = await pocketbase.patchPocketBaseTaskComments(recordId, updatedTask.Json, getPocketBaseAuthToken());
-            savedTasks[taskIndex] = record;
-            taskJsonDraft = parseTaskJson(record.Json);
+            const comment = buildTaskComment(commentText);
+            const result = await createTaskCommentWithFallback(recordId, task, comment);
+            const latestTask = savedTasks.find(savedTask => savedTask.id === recordId) || task;
+            taskJsonDraft = parseTaskJson(latestTask.Json);
             dom.taskCommentInput.value = '';
-            renderTaskComments();
+            if (result.source === 'comments-collection') {
+                await loadTaskComments(recordId, { silent: true });
+            } else {
+                renderTaskComments();
+            }
             renderSavedTasks();
             renderKanbanBoard();
             ui.setTaskFormStatus('Task chat message sent.', 'success');
@@ -476,23 +458,22 @@ export function createTaskController({
     async function createFeedbackTask(taskData) {
         const currentUser = getCurrentUser();
         const assignedValue = taskData.assigned || (currentUser ? getUserAssignmentValue(currentUser) : '');
-        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
-        const token = enteredToken || session.hydratePocketBaseToken() || getCurrentUserToken() || '';
-        session.persistPocketBaseToken(enteredToken);
-        hydratePocketBaseTokenInputs();
+        const boardName = isBoardAllowedForCurrentUser(taskData.board_name)
+            ? taskData.board_name
+            : (getAllowedDefaultBoardNames()[0] || '');
 
         const record = await createPocketBaseTaskWithFallback({
             due_date: '',
             task_name: taskData.task_name,
             task_description: taskData.task_description,
             assigned: assignedValue,
-            board_name: taskData.board_name || 'Feedback',
+            board_name: boardName,
             task_status: normalizeTaskStatus(taskData.task_status || 'new'),
             Json: taskData.Json || {},
             Notes: taskData.Notes || '',
             task_id: taskData.task_id || Date.now(),
             attatchemnt: null,
-            token,
+            token: getCurrentUserToken() || '',
         });
 
         savedTasks = [record, ...savedTasks];
@@ -502,22 +483,27 @@ export function createTaskController({
         return record;
     }
 
-    function buildTaskWithComment(task, commentText) {
-        const json = parseTaskJson(task.Json);
-        const comments = getTaskComments(task);
+    function buildTaskComment(commentText) {
         const currentUser = getCurrentUser();
         const userName = currentUser ? getUserDisplayName(currentUser) : 'Unknown User';
 
+        return {
+            id: `comment-${Date.now()}`,
+            body: commentText,
+            created_at: new Date().toISOString(),
+            user_id: currentUser?.id || '',
+            user_name: userName,
+            user_email: currentUser?.email || '',
+        };
+    }
+
+    function buildTaskWithComment(task, comment) {
+        const json = parseTaskJson(task.Json);
+        const comments = getTaskComments(task);
+
         json.task_comments = [
             ...comments,
-            {
-                id: `comment-${Date.now()}`,
-                body: commentText,
-                created_at: new Date().toISOString(),
-                user_id: currentUser?.id || '',
-                user_name: userName,
-                user_email: currentUser?.email || '',
-            },
+            comment,
         ];
 
         return {
@@ -611,11 +597,6 @@ export function createTaskController({
         jsonValue.assigned = assignedValue;
         jsonValue.assigned_label = getAssignedDisplayName(assignedValue);
 
-        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
-        const token = enteredToken || session.hydratePocketBaseToken() || '';
-        session.persistPocketBaseToken(enteredToken);
-        hydratePocketBaseTokenInputs();
-
         return {
             due_date: dueDateInput ? new Date(dueDateInput).toISOString() : '',
             task_name: document.getElementById('taskName').value.trim(),
@@ -627,7 +608,7 @@ export function createTaskController({
             Notes: document.getElementById('taskNotes').value.trim(),
             task_id: Number(dom.taskIdInput.value || Date.now()),
             attatchemnt: attachment,
-            token,
+            token: getCurrentUserToken() || '',
         };
     }
 
@@ -785,7 +766,9 @@ export function createTaskController({
 
     function renderTaskComments() {
         const recordId = dom.taskModal.dataset.recordId || '';
-        const comments = getTaskComments({ Json: taskJsonDraft });
+        const comments = recordId && commentsByTaskId.has(recordId)
+            ? commentsByTaskId.get(recordId)
+            : getTaskComments({ Json: taskJsonDraft });
         dom.taskCommentCount.textContent = String(comments.length);
         dom.addTaskCommentButton.disabled = !recordId;
         dom.taskCommentInput.disabled = !recordId;
@@ -811,6 +794,54 @@ export function createTaskController({
         const json = parseTaskJson(task.Json);
         const comments = json?.task_comments || json?.comments || [];
         return Array.isArray(comments) ? comments : [];
+    }
+
+    async function loadTaskCommentsForModal(recordId) {
+        if (!recordId) return;
+
+        try {
+            await loadTaskComments(recordId);
+        } catch (error) {
+            ui.setTaskFormStatus(`Task chat loaded from legacy task data: ${error.message}`, 'error');
+        }
+    }
+
+    async function loadTaskComments(recordId, options = {}) {
+        const result = await pocketbase.fetchTaskComments(recordId, getPocketBaseAuthToken());
+        const comments = (result.items || []).map(comment => ({
+            id: comment.id,
+            body: comment.body || '',
+            created_at: comment.created || comment.created_at || '',
+            user_id: comment.user_id || '',
+            user_name: comment.user_name || '',
+            user_email: comment.user_email || '',
+        }));
+        commentsByTaskId.set(recordId, comments);
+        renderTaskComments();
+
+        if (!options.silent) {
+            ui.setTaskFormStatus('');
+        }
+    }
+
+    async function createTaskCommentWithFallback(recordId, task, comment) {
+        try {
+            await pocketbase.createTaskComment(recordId, comment, getPocketBaseAuthToken());
+            return { source: 'comments-collection' };
+        } catch (error) {
+            if (!error.message.includes('404') && !error.message.includes('403')) {
+                throw error;
+            }
+
+            const updatedTask = buildTaskWithComment(task, comment);
+            const record = await pocketbase.patchPocketBaseTaskComments(recordId, updatedTask.Json, getPocketBaseAuthToken());
+            const taskIndex = savedTasks.findIndex(savedTask => savedTask.id === recordId);
+            if (taskIndex >= 0) {
+                savedTasks[taskIndex] = record;
+            }
+            commentsByTaskId.set(recordId, getTaskComments(record));
+            return { source: 'legacy-json' };
+        }
     }
 
     function getTasksAssignedToCurrentUser() {
@@ -850,6 +881,7 @@ export function createTaskController({
         document.getElementById('taskNotes').value = task.Notes || '';
         dom.taskIdInput.value = task.task_id || '';
         document.getElementById('taskAttachment').value = '';
+        renderCurrentAttachment(task);
     }
 
     function fillTaskDraft(taskDraft) {
@@ -866,6 +898,7 @@ export function createTaskController({
         document.getElementById('taskNotes').value = taskDraft.Notes;
         dom.taskIdInput.value = taskDraft.task_id;
         document.getElementById('taskAttachment').value = '';
+        renderCurrentAttachment(null);
     }
 
     function setTaskFormMode(mode) {
@@ -902,6 +935,30 @@ export function createTaskController({
                 field.readOnly = isViewing;
             }
         });
+    }
+
+    function renderCurrentAttachment(task) {
+        const attachmentPanel = document.getElementById('taskAttachmentCurrent');
+        if (!attachmentPanel) return;
+
+        const attachment = getTaskAttachmentName(task);
+        if (!task?.id || !attachment) {
+            attachmentPanel.textContent = 'No attachment saved.';
+            return;
+        }
+
+        const attachmentUrl = `${POCKETBASE_BASE_URL}/api/files/${POCKETBASE_COLLECTION}/${encodeURIComponent(task.id)}/${encodeURIComponent(attachment)}`;
+        attachmentPanel.innerHTML = `
+            <a href="${escapeHtml(attachmentUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(attachment)}</a>
+        `;
+    }
+
+    function getTaskAttachmentName(task) {
+        if (!task) return '';
+        const value = task.attatchemnt;
+        if (Array.isArray(value)) return String(value[0] || '');
+        if (value && typeof value === 'object') return String(value.name || value.filename || '');
+        return String(value || '');
     }
 
     function getTaskPreview(task) {
@@ -1053,9 +1110,6 @@ export function createTaskController({
     }
 
     return {
-        hydratePocketBaseTokenInputs,
-        syncPocketBaseTokenFromPanel,
-        syncPocketBaseTokenFromModal,
         refreshPocketBaseData,
         loadAvailableUsers,
         loadPocketBaseTasks,

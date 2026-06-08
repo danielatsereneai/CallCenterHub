@@ -70,7 +70,7 @@
 
             <div class="user-card" id="userCard" hidden>
                 <span>Signed in as</span>
-                <b id="currentUserName">Command User</b>
+                <b id="currentUserName">Life@Perch User</b>
                 <button class="chat-option" id="mySettingsButton" type="button">My Settings</button>
                 <button class="chat-option" id="logoutButton" type="button">Log Out</button>
             </div>
@@ -497,6 +497,7 @@
                     <label>
                         <span>Attachment</span>
                         <input id="taskAttachment" name="attatchemnt" type="file">
+                        <small id="taskAttachmentCurrent">No attachment saved.</small>
                     </label>
 
                     <div class="task-form-status" id="taskFormStatus" aria-live="polite"></div>
@@ -596,7 +597,7 @@
         <section class="task-modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
             <div class="modal-header">
                 <div>
-                    <p class="eyebrow">Command Center User</p>
+                    <p class="eyebrow">Life@Perch User</p>
                     <h2 id="settingsModalTitle">My Settings</h2>
                 </div>
                 <button class="icon-button" id="closeSettingsModal" type="button" aria-label="Close settings">×</button>
@@ -605,7 +606,7 @@
             <div class="settings-profile">
                 <div class="settings-avatar" id="settingsAvatar">U</div>
                 <div>
-                    <h3 id="settingsProfileName">Command User</h3>
+                    <h3 id="settingsProfileName">Life@Perch User</h3>
                     <p id="settingsProfileEmail">No email loaded</p>
                 </div>
             </div>
@@ -661,6 +662,7 @@
         </section>
     </div>
 
+    <script src="config.runtime.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>

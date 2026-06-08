@@ -1,0 +1,13 @@
+{
+  "name": "life-at-perch-operations-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "node scripts/smoke-static.mjs",
+    "verify:production": "node scripts/verify-production.mjs",
+    "check:syntax": "for f in script.js modules/*.js tests/*.test.js; do node --check \"$f\"; done",
+    "test": "node --test",
+    "verify": "npm run check:syntax && npm test && npm run smoke"
+  }
+}

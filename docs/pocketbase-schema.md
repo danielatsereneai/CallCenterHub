@@ -71,6 +71,8 @@ Update: @request.auth.id != ""
 Delete: admin only
 ```
 
+The app scopes standard-user task list requests to the user's `org_id` board before fetching records, but browser-side filtering is not a security boundary. For production, also enforce org-level access in PocketBase rules, for example by allowing admins to view all tasks and limiting standard users to task records whose `board_name` matches the board mapped from their user `org_id`.
+
 For stricter per-user projects, limit task view/update rules to the assigned user or a project role field.
 
 ## CORS

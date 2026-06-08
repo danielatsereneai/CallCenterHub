@@ -66,17 +66,44 @@ export function createPocketBaseClient({
         return result;
     }
 
-    async function fetchPocketBaseTasks(token) {
-        const params = new URLSearchParams({
-            page: '1',
-            perPage: '50',
-            sort: '-created',
-        });
-        const response = await fetch(`${baseUrl}/api/collections/${taskCollection}/records?${params}`, {
-            method: 'GET',
-            headers: buildAuthHeaders(token),
-        });
-        return parseOrThrow(response);
+    async function fetchPocketBaseTasks(token, options = {}) {
+        const perPage = options.perPage || 100;
+        const filter = buildTaskListFilter(options.boardNames);
+        const allItems = [];
+        let page = 1;
+        let totalPages = 1;
+        let lastResult = null;
+
+        do {
+            const params = new URLSearchParams({
+                page: String(page),
+                perPage: String(perPage),
+                sort: '-created',
+            });
+
+            if (filter) {
+                params.set('filter', filter);
+            }
+
+            const response = await fetch(`${baseUrl}/api/collections/${taskCollection}/records?${params}`, {
+                method: 'GET',
+                headers: buildAuthHeaders(token),
+            });
+            const result = await parseOrThrow(response);
+            allItems.push(...(result.items || []));
+            lastResult = result;
+            totalPages = Number(result.totalPages) || 1;
+            page += 1;
+        } while (page <= totalPages);
+
+        return {
+            ...(lastResult || {}),
+            page: 1,
+            perPage,
+            totalItems: allItems.length,
+            totalPages: 1,
+            items: allItems,
+        };
     }
 
     async function createPocketBaseTask(taskData, token) {
@@ -196,6 +223,22 @@ export function createPocketBaseClient({
 
 function buildAuthHeaders(token) {
     return token ? { Authorization: token } : {};
+}
+
+function buildTaskListFilter(boardNames) {
+    if (!Array.isArray(boardNames)) return '';
+
+    const uniqueBoardNames = [...new Set(
+        boardNames
+            .map(boardName => String(boardName || '').trim())
+            .filter(Boolean),
+    )];
+
+    if (!uniqueBoardNames.length) return 'id = ""';
+
+    return uniqueBoardNames
+        .map(boardName => `board_name = ${JSON.stringify(boardName)}`)
+        .join(' || ');
 }
 
 async function parseOrThrow(response) {

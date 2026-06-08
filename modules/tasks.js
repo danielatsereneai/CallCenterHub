@@ -97,7 +97,9 @@ export function createTaskController({
         }
 
         try {
-            const result = await pocketbase.fetchPocketBaseTasks(token);
+            const result = await pocketbase.fetchPocketBaseTasks(token, {
+                boardNames: getTaskFetchBoardNames(),
+            });
             savedTasks = result.items || [];
             renderSavedTasks();
             populateBoardSelect();
@@ -998,6 +1000,13 @@ export function createTaskController({
 
         const userBoardName = getUserBoardName(currentUser);
         return userBoardName ? [userBoardName] : [];
+    }
+
+    function getTaskFetchBoardNames() {
+        const currentUser = getCurrentUser();
+        if (!currentUser || isAdminUser(currentUser)) return undefined;
+
+        return getAllowedDefaultBoardNames();
     }
 
     function getTaskMetaLine(task) {

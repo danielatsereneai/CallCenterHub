@@ -26,11 +26,7 @@ const TEAM_DASHBOARDS = [
         description: 'Quality control checks, review workflows, and team links.',
         icon: 'QC',
         actions: [
-            { icon: '+', title: 'New Review', text: 'Start a quality control review or follow-up task.' },
             { icon: '✎', title: 'Feedback Submissions', text: 'Rewrite agent feedback into coaching notes before saving.', tool: 'feedbackSubmissions' },
-            { icon: '✓', title: 'Review Queue', text: 'Open the team queue for work awaiting checks.' },
-            { icon: '!', title: 'Escalations', text: 'Track items that need quality ownership.' },
-            { icon: 'i', title: 'Guidance', text: 'Open QC working notes and standards.' },
         ],
         links: [
             { label: 'Mail', title: 'Outlook', detail: 'QC mail', url: 'https://outlook.office.com/mail/' },
@@ -46,9 +42,6 @@ const TEAM_DASHBOARDS = [
         icon: 'COR',
         actions: [
             { icon: 'AI', title: 'AI Email Response', text: 'Draft a customer email reply from the email and your findings.', tool: 'aiEmailResponse' },
-            { icon: '+', title: 'New Case', text: 'Create a task for correspondence follow-up.' },
-            { icon: '↗', title: 'Inbox', text: 'Open the shared correspondence workspace.' },
-            { icon: '□', title: 'Templates', text: 'Find standard responses and working notes.' },
         ],
         links: [
             { label: 'Mail', title: 'Outlook', detail: 'Correspondence mail', url: 'https://outlook.office.com/mail/' },

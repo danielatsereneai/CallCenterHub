@@ -435,12 +435,12 @@ export function createTaskController({
         const commentText = dom.taskCommentInput.value.trim();
 
         if (!recordId) {
-            ui.setTaskFormStatus('Save the task before adding comments.', 'error');
+            ui.setTaskFormStatus('Save the task before using task chat.', 'error');
             return;
         }
 
         if (!commentText) {
-            ui.setTaskFormStatus('Write a comment before adding it.', 'error');
+            ui.setTaskFormStatus('Write a task chat message before sending it.', 'error');
             return;
         }
 
@@ -453,7 +453,7 @@ export function createTaskController({
         }
 
         dom.addTaskCommentButton.disabled = true;
-        ui.setTaskFormStatus('Adding comment...');
+        ui.setTaskFormStatus('Sending task chat message...');
 
         try {
             const updatedTask = buildTaskWithComment(task, commentText);
@@ -464,10 +464,10 @@ export function createTaskController({
             renderTaskComments();
             renderSavedTasks();
             renderKanbanBoard();
-            ui.setTaskFormStatus('Comment added.', 'success');
+            ui.setTaskFormStatus('Task chat message sent.', 'success');
         } catch (error) {
             console.error('PocketBase task comment error:', error);
-            ui.setTaskFormStatus(`Comment failed: ${error.message}`, 'error');
+            ui.setTaskFormStatus(`Task chat message failed: ${error.message}`, 'error');
         } finally {
             dom.addTaskCommentButton.disabled = false;
         }
@@ -789,10 +789,10 @@ export function createTaskController({
         dom.taskCommentCount.textContent = String(comments.length);
         dom.addTaskCommentButton.disabled = !recordId;
         dom.taskCommentInput.disabled = !recordId;
-        dom.taskCommentInput.placeholder = recordId ? 'Add a task update...' : 'Save the task before adding comments';
+        dom.taskCommentInput.placeholder = recordId ? 'Send a task chat message...' : 'Save the task before using task chat';
 
         if (!comments.length) {
-            dom.taskCommentList.innerHTML = `<div class="empty-state">${recordId ? 'No comments yet.' : 'Comments will be available after this task is saved.'}</div>`;
+            dom.taskCommentList.innerHTML = `<div class="empty-state">${recordId ? 'No chat messages yet.' : 'Task chat will be available after this task is saved.'}</div>`;
             return;
         }
 

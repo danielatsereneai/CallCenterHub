@@ -1700,6 +1700,10 @@ body.is-authenticated .auth-screen {
   box-shadow: 0 22px 90px rgba(0, 0, 0, 0.42), var(--shadow);
 }
 
+.task-detail-modal {
+  width: min(1120px, 100%);
+}
+
 .settings-modal {
   width: min(620px, 100%);
 }
@@ -1768,6 +1772,18 @@ body.is-authenticated .auth-screen {
 
 .task-form {
   padding: 22px 24px 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.task-detail-form {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  align-items: start;
+}
+
+.task-form-main {
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -1883,11 +1899,20 @@ body.is-authenticated .auth-screen {
 
 .task-comments {
   display: grid;
+  align-content: start;
   gap: 12px;
   padding: 14px;
   border: 1px solid rgba(35, 213, 255, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
+}
+
+.task-chat-panel {
+  min-height: 100%;
+  max-height: calc(100vh - 190px);
+  grid-template-rows: auto minmax(180px, 1fr) auto;
+  position: sticky;
+  top: 0;
 }
 
 .task-comments-header {
@@ -1915,12 +1940,18 @@ body.is-authenticated .auth-screen {
 
 .task-comment-list {
   display: grid;
+  align-content: start;
   gap: 10px;
+  min-height: 180px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .task-comment {
+  width: min(100%, 280px);
+  justify-self: start;
   border: 1px solid rgba(35, 213, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 8px 8px 8px 3px;
   background: rgba(1, 9, 18, 0.45);
   padding: 12px;
 }
@@ -1947,7 +1978,7 @@ body.is-authenticated .auth-screen {
 
 .task-comment-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1fr;
   gap: 10px;
   align-items: start;
 }
@@ -2292,6 +2323,20 @@ body.is-authenticated .auth-screen {
     grid-template-columns: 1fr;
   }
 
+  .task-detail-form {
+    grid-template-columns: 1fr;
+  }
+
+  .task-form-main {
+    grid-template-columns: 1fr;
+  }
+
+  .task-chat-panel {
+    min-height: auto;
+    max-height: none;
+    position: relative;
+  }
+
   .task-row {
     grid-template-columns: 1fr;
   }
@@ -2372,6 +2417,10 @@ body.is-authenticated .auth-screen {
     grid-template-columns: 1fr;
   }
 
+  .task-comment {
+    width: 100%;
+  }
+
   .modal-backdrop {
     padding: 12px;
   }
@@ -2436,6 +2485,7 @@ body::before {
 .model-selector-section,
 .status,
 .settings-field,
+.task-comments,
 .task-comment {
   border-color: var(--line);
   background: #ffffff;
@@ -2535,8 +2585,13 @@ body::before {
 .kanban-card span,
 .profile-card span,
 .settings-profile p,
+.task-comment-meta,
 .auth-status {
   color: var(--muted);
+}
+
+.task-comment p {
+  color: var(--text);
 }
 
 .nav-item {

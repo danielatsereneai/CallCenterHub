@@ -428,7 +428,7 @@
     </div>
 
     <div class="modal-backdrop" id="taskModal" aria-hidden="true">
-        <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskName">
+        <section class="task-modal task-detail-modal" role="dialog" aria-modal="true" aria-labelledby="taskName">
             <div class="modal-header">
                 <div class="task-title-block">
                     <p class="eyebrow" id="taskModalTitle">New Task</p>
@@ -437,88 +437,90 @@
                 <button class="icon-button" id="closeTaskModal" type="button" aria-label="Close task form">×</button>
             </div>
 
-            <form class="task-form" id="taskForm">
-                <section class="ai-task-draft full-field">
-                    <div class="ai-task-draft-header">
-                        <div>
-                            <span>AI Task Draft</span>
-                            <p>Add a pre-summary and the prompt library formatter will create a reviewable task API request.</p>
+            <form class="task-form task-detail-form" id="taskForm">
+                <div class="task-form-main">
+                    <section class="ai-task-draft full-field">
+                        <div class="ai-task-draft-header">
+                            <div>
+                                <span>AI Task Draft</span>
+                                <p>Add a pre-summary and the prompt library formatter will create a reviewable task API request.</p>
+                            </div>
+                            <button class="send-button" id="generateAiTaskButton" type="button">Create with AI</button>
                         </div>
-                        <button class="send-button" id="generateAiTaskButton" type="button">Create with AI</button>
-                    </div>
+                        <label>
+                            <span>Pre-summary</span>
+                            <textarea id="aiTaskSummary" rows="3" placeholder="Add any summary, context, customer details, or expected outcome..."></textarea>
+                        </label>
+                    </section>
+
                     <label>
-                        <span>Pre-summary</span>
-                        <textarea id="aiTaskSummary" rows="3" placeholder="Add any summary, context, customer details, or expected outcome..."></textarea>
+                        <span>Due Date</span>
+                        <input id="taskDueDate" name="due_date" type="datetime-local">
                     </label>
-                </section>
 
-                <label>
-                    <span>Due Date</span>
-                    <input id="taskDueDate" name="due_date" type="datetime-local">
-                </label>
+                    <label>
+                        <span>Assigned</span>
+                        <select id="taskAssigned" name="assigned">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </label>
 
-                <label>
-                    <span>Assigned</span>
-                    <select id="taskAssigned" name="assigned">
-                        <option value="">Unassigned</option>
-                    </select>
-                </label>
+                    <label>
+                        <span>Board Name</span>
+                        <select id="taskBoardName" name="board_name">
+                            <option value="">No board</option>
+                        </select>
+                    </label>
 
-                <label>
-                    <span>Board Name</span>
-                    <select id="taskBoardName" name="board_name">
-                        <option value="">No board</option>
-                    </select>
-                </label>
+                    <label>
+                        <span>Status</span>
+                        <select id="taskStatus">
+                            <option value="new">New</option>
+                            <option value="todo">To Do</option>
+                            <option value="blocked">Blocked</option>
+                            <option value="hold">Hold</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </label>
 
-                <label>
-                    <span>Status</span>
-                    <select id="taskStatus">
-                        <option value="new">New</option>
-                        <option value="todo">To Do</option>
-                        <option value="blocked">Blocked</option>
-                        <option value="hold">Hold</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                </label>
+                    <label class="full-field">
+                        <span>Description</span>
+                        <textarea id="taskDescription" name="task_description" rows="3" placeholder="What needs to happen?"></textarea>
+                    </label>
 
-                <label class="full-field">
-                    <span>Description</span>
-                    <textarea id="taskDescription" name="task_description" rows="3" placeholder="What needs to happen?"></textarea>
-                </label>
+                    <label class="full-field">
+                        <span>Notes</span>
+                        <textarea id="taskNotes" name="Notes" rows="3" placeholder="Context, links, or reminders"></textarea>
+                    </label>
 
-                <label class="full-field">
-                    <span>Notes</span>
-                    <textarea id="taskNotes" name="Notes" rows="3" placeholder="Context, links, or reminders"></textarea>
-                </label>
+                    <input id="taskId" name="task_id" type="hidden">
 
-                <input id="taskId" name="task_id" type="hidden">
+                    <label>
+                        <span>Attachment</span>
+                        <input id="taskAttachment" name="attatchemnt" type="file">
+                    </label>
 
-                <label>
-                    <span>Attachment</span>
-                    <input id="taskAttachment" name="attatchemnt" type="file">
-                </label>
+                    <div class="task-form-status" id="taskFormStatus" aria-live="polite"></div>
 
-                <div class="task-form-status" id="taskFormStatus" aria-live="polite"></div>
+                    <div class="modal-actions">
+                        <button class="chat-option" id="cancelTaskButton" type="button">Cancel</button>
+                        <button class="send-button" id="saveTaskButton" type="submit">Save Task</button>
+                    </div>
+                </div>
 
-                <section class="task-comments full-field" id="taskCommentsSection">
+                <aside class="task-comments task-chat-panel" id="taskCommentsSection" aria-label="Task chat">
                     <div class="task-comments-header">
-                        <span>Comments</span>
+                        <span>Task Chat</span>
                         <b id="taskCommentCount">0</b>
                     </div>
                     <div class="task-comment-list" id="taskCommentList">
-                        <div class="empty-state">No comments yet.</div>
+                        <div class="empty-state">No chat messages yet.</div>
                     </div>
                     <div class="task-comment-form">
-                        <textarea id="taskCommentInput" rows="2" placeholder="Add a task update..."></textarea>
-                        <button class="chat-option" id="addTaskCommentButton" type="button">Add Comment</button>
+                        <textarea id="taskCommentInput" rows="3" placeholder="Send a task chat message..."></textarea>
+                        <button class="chat-option" id="addTaskCommentButton" type="button">Send</button>
                     </div>
-                </section>
-
-                <div class="modal-actions">
-                    <button class="chat-option" id="cancelTaskButton" type="button">Cancel</button>
-                    <button class="send-button" id="saveTaskButton" type="submit">Save Task</button>
-                </div>
+                </aside>
             </form>
         </section>
     </div>

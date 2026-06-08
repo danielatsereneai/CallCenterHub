@@ -46,7 +46,6 @@ The app is in a strong static-dashboard shape: the code is split into sensible m
 
 Quick possibilities:
 
-- Wire the sidebar **Systems** item to a real page, or remove it until the page exists.
 - Move team dashboard definitions and quick links into `modules/config.js` so non-developers can adjust them without editing UI code.
 - Add a small smoke-test checklist or Playwright test for login screen render, nav switching, modal open/close, prompt copy, and Kanban rendering.
 - Add a visible refresh control to the dashboard task panel if users need manual task reload from the first screen; the current refresh button exists on the Tasks board.
@@ -54,7 +53,6 @@ Quick possibilities:
 
 Issues or mismatches to watch:
 
-- The sidebar shows **Systems**, but it has no `data-view` and no active page behind it.
 - Prompt edits are stored in browser `localStorage`, not PocketBase, so custom prompts are browser-local rather than shared globally.
 - Task visibility is enforced in the browser UI from the loaded task list. PocketBase collection rules should also be configured server-side if org-level access must be enforced at the API/security layer.
 - The settings modal still says "Command Center User" and fallback names use "Command User"; the rest of the app is branded Life@Perch.

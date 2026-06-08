@@ -1555,22 +1555,23 @@ body.is-authenticated .auth-screen {
 
 .task-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 14px;
-  cursor: pointer;
+  gap: 12px;
   transition: 180ms ease;
+  overflow: hidden;
 }
 
-.task-row:hover,
-.task-row:focus-visible {
+.task-row:hover {
   border-color: var(--cyan);
-  background: rgba(12, 54, 88, 0.62);
+  background: rgba(35, 213, 255, 0.055);
   transform: translateY(-2px);
 }
 
-.task-row:focus-visible {
-  outline: 3px solid rgba(35, 213, 255, 0.22);
-  outline-offset: 3px;
+.task-row-header {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .task-row b,
@@ -1582,11 +1583,79 @@ body.is-authenticated .auth-screen {
   color: var(--text);
 }
 
+.task-row-header b,
+.task-row-header .task-meta {
+  display: block;
+}
+
 .task-row span,
+.task-row p,
 .empty-state {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.45;
+}
+
+.task-row-body {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(35, 213, 255, 0.12);
+}
+
+.task-row-body p {
+  white-space: pre-wrap;
+}
+
+.task-row.is-minimized .task-row-body {
+  display: none;
+}
+
+.task-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.task-row-open-button,
+.task-row-toggle-button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.task-row-toggle-button {
+  color: var(--green);
+  background: #eef8f4;
+}
+
+.task-list-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.task-list-pagination div {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.task-list-pagination button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.task-list-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .empty-state-error {

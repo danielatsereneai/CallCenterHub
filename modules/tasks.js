@@ -13,6 +13,8 @@ import {
     toDateTimeLocalValue,
 } from './utils.js';
 
+const DASHBOARD_TASK_PAGE_SIZE = 5;
+
 export function createTaskController({
     dom,
     ui,
@@ -26,6 +28,7 @@ export function createTaskController({
     let availableUsers = [];
     let taskJsonDraft = {};
     let draggedTaskIndex = null;
+    let dashboardTaskPage = 0;
 
     function hydratePocketBaseTokenInputs() {
         const token = session.hydratePocketBaseToken();
@@ -125,6 +128,7 @@ export function createTaskController({
     function clearTaskState() {
         availableUsers = [];
         savedTasks = [];
+        dashboardTaskPage = 0;
         renderSavedTasks();
         populateAssignedSelect();
     }
@@ -262,13 +266,54 @@ export function createTaskController({
     }
 
     function handleTaskListClick(event) {
+        const toggleButton = event.target.closest('[data-dashboard-task-toggle]');
+        if (toggleButton) {
+            toggleDashboardTask(toggleButton);
+            return;
+        }
+
+        const pageButton = event.target.closest('[data-dashboard-task-page]');
+        if (pageButton) {
+            changeDashboardTaskPage(Number(pageButton.dataset.dashboardTaskPage));
+            return;
+        }
+
+        const openButton = event.target.closest('[data-dashboard-task-open]');
+        if (openButton) {
+            openTaskView(Number(openButton.dataset.dashboardTaskOpen));
+            return;
+        }
+
         const taskRow = event.target.closest('.task-row');
         if (!taskRow) return;
 
-        openTaskView(Number(taskRow.dataset.taskIndex));
+        if (!event.target.closest('.task-row-header')) {
+            openTaskView(Number(taskRow.dataset.taskIndex));
+        }
     }
 
     function handleTaskListKeydown(event) {
+        const pageButton = event.target.closest('[data-dashboard-task-page]');
+        if (pageButton && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            changeDashboardTaskPage(Number(pageButton.dataset.dashboardTaskPage));
+            return;
+        }
+
+        const toggleButton = event.target.closest('[data-dashboard-task-toggle]');
+        if (toggleButton && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            toggleDashboardTask(toggleButton);
+            return;
+        }
+
+        const openButton = event.target.closest('[data-dashboard-task-open]');
+        if (openButton && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            openTaskView(Number(openButton.dataset.dashboardTaskOpen));
+            return;
+        }
+
         if (event.key !== 'Enter' && event.key !== ' ') return;
 
         const taskRow = event.target.closest('.task-row');
@@ -673,14 +718,67 @@ export function createTaskController({
             return;
         }
 
-        dom.taskList.innerHTML = userTasks.map(({ task, index }) => `
-        <div class="task-row" role="button" tabindex="0" data-task-index="${index}">
-            <b>${escapeHtml(task.task_name || 'Untitled task')}</b>
-            <span class="task-meta">${escapeHtml(getTaskStatusLabel(getTaskStatus(task)))}</span>
-            <span>${escapeHtml(getTaskPreview(task))}</span>
-            <span>${escapeHtml(getTaskMetaLine(task))}</span>
-        </div>
-    `).join('');
+        const totalPages = Math.ceil(userTasks.length / DASHBOARD_TASK_PAGE_SIZE);
+        dashboardTaskPage = Math.min(dashboardTaskPage, Math.max(totalPages - 1, 0));
+        const pageStart = dashboardTaskPage * DASHBOARD_TASK_PAGE_SIZE;
+        const pageTasks = userTasks.slice(pageStart, pageStart + DASHBOARD_TASK_PAGE_SIZE);
+
+        dom.taskList.innerHTML = [
+            ...pageTasks.map(({ task, index }) => renderDashboardTaskCard(task, index)),
+            renderDashboardTaskPager(userTasks.length, totalPages),
+        ].join('');
+    }
+
+    function renderDashboardTaskCard(task, index) {
+        return `
+        <article class="task-row is-minimized" data-task-index="${index}">
+            <div class="task-row-header">
+                <div>
+                    <b>${escapeHtml(task.task_name || 'Untitled task')}</b>
+                    <span class="task-meta">${escapeHtml(getTaskStatusLabel(getTaskStatus(task)))}</span>
+                </div>
+                <div class="task-row-actions">
+                    <button class="chat-option task-row-open-button" type="button" data-dashboard-task-open="${index}">Open</button>
+                    <button class="chat-option task-row-toggle-button" type="button" data-dashboard-task-toggle aria-expanded="false">Expand</button>
+                </div>
+            </div>
+            <div class="task-row-body">
+                <p>${escapeHtml(getTaskPreview(task))}</p>
+                <span>${escapeHtml(getTaskMetaLine(task))}</span>
+            </div>
+        </article>
+    `;
+    }
+
+    function renderDashboardTaskPager(totalTasks, totalPages) {
+        if (totalPages <= 1) return '';
+
+        return `
+        <nav class="task-list-pagination" aria-label="Dashboard task pages">
+            <span>${escapeHtml(`Page ${dashboardTaskPage + 1} of ${totalPages} · ${totalTasks} tasks`)}</span>
+            <div>
+                <button class="chat-option" type="button" data-dashboard-task-page="${dashboardTaskPage - 1}"${dashboardTaskPage <= 0 ? ' disabled' : ''}>Previous</button>
+                <button class="chat-option" type="button" data-dashboard-task-page="${dashboardTaskPage + 1}"${dashboardTaskPage >= totalPages - 1 ? ' disabled' : ''}>Next</button>
+            </div>
+        </nav>
+    `;
+    }
+
+    function toggleDashboardTask(toggleButton) {
+        const taskCard = toggleButton.closest('.task-row');
+        if (!taskCard) return;
+
+        const shouldMinimize = !taskCard.classList.contains('is-minimized');
+        taskCard.classList.toggle('is-minimized', shouldMinimize);
+        toggleButton.textContent = shouldMinimize ? 'Expand' : 'Minimise';
+        toggleButton.setAttribute('aria-expanded', String(!shouldMinimize));
+    }
+
+    function changeDashboardTaskPage(nextPage) {
+        const userTasks = getTasksAssignedToCurrentUser();
+        const totalPages = Math.ceil(userTasks.length / DASHBOARD_TASK_PAGE_SIZE);
+        dashboardTaskPage = Math.min(Math.max(nextPage, 0), Math.max(totalPages - 1, 0));
+        renderSavedTasks();
     }
 
     function renderTaskComments() {

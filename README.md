@@ -1,73 +1,100 @@
 # Life@Perch Operations Hub
 
-Life@Perch is a no-build static operations dashboard for Perch teams. It includes PocketBase-backed login and tasks, static dashboard panels, team operations dashboards, Microsoft 365 quick links, a Knowledge prompt library, and an Ollama-compatible agent chat panel.
+Life@Perch is a no-build static operations dashboard for Perch teams. It includes PocketBase-backed login and tasks, org-scoped task boards, static dashboard panels, team operations dashboards, Microsoft 365 quick links, a Knowledge area for feedback documents and AI prompts, feedback submission workflows, and an Ollama-compatible agent chat panel.
 
 This repository can be used as a GitHub template and deployed to Cloudflare Pages. The current checkout is already configured for the Perch services in `modules/config.js`.
 
 ## Current Stats Overview
 
 - App type: static HTML, CSS, and ES modules with no build step.
-- Total project size reviewed: about 6,739 lines across app files, modules, and docs.
-- Main app files: `index.html` (603 lines), `styles.css` (2,804 lines), `script.js` (358 lines).
-- JavaScript modules: 7 modules across auth, chat, config, PocketBase, tasks, UI, and utilities.
+- Total project size reviewed: about 8,179 lines across app files, modules, and docs.
+- Main app files: `index.html` (665 lines), `styles.css` (3,314 lines), `script.js` (410 lines).
+- JavaScript modules: 9 modules across auth, chat, config, feedback, PocketBase, prompt storage, tasks, UI, and utilities.
 - Documentation files: `README.md`, `docs/onboarding.md`, `docs/pocketbase-schema.md`, and `docs/perch-customer-setup-plan.md`.
 - Current integrations: PocketBase at `https://pocketbase.sereneai.co.uk` and Ollama-compatible gateway at `https://api.sereneai.co.uk`.
 - Current collections: `base_start_users` for auth and `base_start_tasks` for task records.
 - Team dashboards currently configured: QC - Quality Control and Correspondence Team.
 - Task statuses currently supported: New, To Do, Blocked, Hold, Completed.
-- Local persistence: pinned team navigation uses `localStorage`; extra PocketBase token storage, where present, uses `sessionStorage`.
+- User access fields: `User Type` controls prompt editing and `org_id` controls task board/task visibility.
+- Local persistence: pinned team navigation and customised AI prompts use `localStorage`; extra PocketBase token storage, where present, uses `sessionStorage`.
 
 ## What Is Included
 
 - Static HTML, CSS, and JavaScript modules with no build step.
 - PocketBase user login through the `base_start_users` auth collection.
 - PocketBase task create, update, comments, and Kanban status handling through the `base_start_tasks` collection.
+- User-role handling from the `base_start_users` record:
+  - `User Type = Admin` can edit AI prompts and see all task boards.
+  - `User Type = User` can view/copy prompts but cannot edit them.
+  - `org_id` scopes visible task boards and tasks to Perch, ACI, TML, Connect, or Verify.
 - Static dashboard layout with Quick Actions at the top, Quick Links below on the left, and PocketBase Tasks on the right.
 - Operations page with team dashboard tiles and local pinned-team navigation.
 - Team dashboards for QC - Quality Control and Correspondence Team.
+- QC Feedback Submissions tool that rewrites raw feedback with the Ollama-compatible AI, allows review/edit before save, and saves feedback as a normal PocketBase task.
 - Correspondence Team AI Email Response tool for drafting customer replies from customer emails and internal findings.
 - Agent chat through an Ollama-compatible `/api/chat` endpoint, with current-session chat memory capped at 20 messages.
-- Knowledge page with minimisable prompt cards for the task API formatter and AI Email Response prompt.
+- Knowledge page with Feedback and Prompts tabs:
+  - Feedback shows saved feedback submissions as minimised, PDF-style readable documents.
+  - Prompts shows minimisable AI prompt cards for task drafting, email response, and feedback coaching.
+  - Admin users can edit/reset prompts; all users can view and copy prompts.
 - Client-editable service and area configuration in `modules/config.js`.
 - Onboarding docs for GitHub template use, PocketBase, Ollama gateway setup, and Cloudflare Pages.
 
 ## Current Review Notes
 
-The app is in a strong static-dashboard shape: the code is split into sensible modules, the syntax check passes, and the README/docs now line up with the current Perch configuration.
+The app is in a strong static-dashboard shape: the code is split into sensible modules, syntax checks pass, and the README now lines up with the current Perch configuration and access model.
 
 Quick possibilities:
 
 - Wire the sidebar **Systems** item to a real page, or remove it until the page exists.
-- Turn placeholder Quick Actions such as Project Links, Open Board, Client Workflow, New Review, Review Queue, Escalations, Guidance, Inbox, and Templates into real links or task actions.
 - Move team dashboard definitions and quick links into `modules/config.js` so non-developers can adjust them without editing UI code.
 - Add a small smoke-test checklist or Playwright test for login screen render, nav switching, modal open/close, prompt copy, and Kanban rendering.
 - Add a visible refresh control to the dashboard task panel if users need manual task reload from the first screen; the current refresh button exists on the Tasks board.
-- Add a clear "assigned to me" label to the dashboard task panel, because the dashboard filters to tasks assigned to the logged-in user while the Kanban can show all loaded tasks.
+- Add a clear "assigned to me" label to the dashboard task panel, because the dashboard filters to visible tasks assigned to the logged-in user while the Kanban can show all visible tasks for the user's org.
 
 Issues or mismatches to watch:
 
 - The sidebar shows **Systems**, but it has no `data-view` and no active page behind it.
-- Several Quick Action tiles are visual placeholders only, which may feel like broken controls if users expect every tile to do something.
+- Prompt edits are stored in browser `localStorage`, not PocketBase, so custom prompts are browser-local rather than shared globally.
+- Task visibility is enforced in the browser UI from the loaded task list. PocketBase collection rules should also be configured server-side if org-level access must be enforced at the API/security layer.
 - The settings modal still says "Command Center User" and fallback names use "Command User"; the rest of the app is branded Life@Perch.
 - The attachment field is named `attatchemnt`. This matches the documented PocketBase schema and current code, but it is intentionally misspelled and should only be renamed with a coordinated schema/code update.
-- `README.md` previously showed placeholder service URLs even though the app is currently configured with live Perch endpoints.
 - Local port `4177` may already be in use. Use another static-server port if needed.
 
 ## Current Dashboard Areas
 
-- Dashboard: fixed Quick Actions, Quick Links, and assigned-to-me PocketBase Tasks panels.
+- Dashboard: working Quick Actions, Quick Links, and assigned-to-me PocketBase Tasks panels. Dashboard task results are filtered by the logged-in user's org access.
 - Operations: team dashboard tiles for QC and Correspondence, with pin/unpin controls that save locally in the browser.
-- Team Dashboard: team-specific Quick Actions and Quick Links. The Correspondence dashboard includes the AI Email Response tool.
-- Tasks: Kanban-style task board backed by PocketBase, with board filtering and drag/drop status updates.
-- Knowledge: prompt library for operational AI prompts. Prompt cards can be minimised to show names only.
+- Team Dashboard: team-specific Quick Actions and Quick Links. QC includes Feedback Submissions. Correspondence includes AI Email Response.
+- Tasks: Kanban-style task board backed by PocketBase, with org-scoped board filtering and drag/drop status updates.
+- Knowledge: Feedback and Prompts tabs. Feedback documents and prompt cards open minimised and can be expanded.
 
 Pinned team navigation is stored in browser `localStorage` under `lifeAtPerchPinnedTeamDashboards`, so it is personal to the browser and does not affect other users.
+
+Custom prompt edits are stored in browser `localStorage` under `lifeAtPerchCustomPrompts`, so they are also personal to the browser and do not automatically sync across users or devices.
+
+## User Access Model
+
+Life@Perch expects the `base_start_users` record to include these additional fields when access control is needed:
+
+- `User Type`: use `Admin` for administrators and `User` for standard users.
+- `org_id`: use `Perch`, `ACI`, `TML`, `Connect`, or `Verify`.
+
+Current behaviour:
+
+- Admin users can edit/reset prompts in Knowledge and see all task boards.
+- Standard users can view/copy prompts, but prompt editors are read-only and Save/Reset controls are hidden.
+- Standard users only see tasks and task board choices for their `org_id`.
+- `org_id = Perch` maps to the existing `PerchGroup` task board label.
 
 ## AI Tools
 
 - Agent Chat: sends recent in-session chat history to the Ollama-compatible `/api/chat` endpoint, capped at 20 messages. Memory resets when the browser session/page state resets.
-- AI Task Draft: uses the prompt library task API formatter. Users only provide a pre-summary; the app adds that into the formatter prompt.
+- AI Task Draft: uses the Knowledge prompt for the task API formatter. Users only provide a pre-summary; the app adds that into the formatter prompt.
 - AI Email Response: available on the Correspondence Team dashboard. Users provide the customer email and their summary findings, then the app generates a draft email response. The generated response can be copied from the tool.
+- Feedback Coaching Rewrite: available from the dashboard and QC dashboard. Users enter feedback details, ask AI to rewrite into coaching-style content, review/edit the output, and save it as a PocketBase task on the Feedback board.
+
+The AI flows read prompt text through `modules/prompts.js`, so Admin prompt edits in Knowledge are used by the AI flow immediately in that browser.
 
 ## Required Services
 
@@ -143,7 +170,9 @@ modules/
   auth.js
   chat.js
   config.js
+  feedback.js
   pocketbaseClient.js
+  prompts.js
   tasks.js
   ui.js
   utils.js

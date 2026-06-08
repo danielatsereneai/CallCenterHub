@@ -1265,6 +1265,26 @@ body.is-authenticated .auth-screen {
   line-height: 1.25;
 }
 
+.feedback-document.is-minimized .feedback-document-header {
+  align-items: center;
+  border-bottom: 0;
+}
+
+.feedback-document-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.feedback-document-toggle {
+  min-height: 36px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  color: var(--green);
+  background: #eef8f4;
+}
+
 .feedback-document-meta {
   margin: 0;
   padding: 16px 28px;
@@ -1315,6 +1335,11 @@ body.is-authenticated .auth-screen {
   font-size: 14px;
   line-height: 1.75;
   white-space: pre-wrap;
+}
+
+.feedback-document.is-minimized .feedback-document-meta,
+.feedback-document.is-minimized .feedback-document-body {
+  display: none;
 }
 
 .prompt-library {

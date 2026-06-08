@@ -368,12 +368,12 @@
                     </div>
                 </div>
 
-                <div class="knowledge-tabs" role="tablist" aria-label="Knowledge sections">
-                    <button class="quick-link-filter-button active" type="button" role="tab" aria-selected="true">Feedback</button>
-                    <button class="quick-link-filter-button" type="button" role="tab" aria-selected="false">Prompts</button>
+                <div class="knowledge-tabs" id="knowledgeTabs" role="tablist" aria-label="Knowledge sections">
+                    <button class="quick-link-filter-button active" type="button" role="tab" aria-selected="true" data-knowledge-tab="feedback">Feedback</button>
+                    <button class="quick-link-filter-button" type="button" role="tab" aria-selected="false" data-knowledge-tab="prompts">Prompts</button>
                 </div>
 
-                <section class="placeholder-panel feedback-knowledge-panel">
+                <section class="placeholder-panel feedback-knowledge-panel" id="feedbackKnowledgePanel" data-knowledge-panel="feedback">
                     <div class="panel-header">
                         <span>Feedback Documents</span>
                     </div>
@@ -382,7 +382,7 @@
                     </div>
                 </section>
 
-                <section class="placeholder-panel prompts-placeholder">
+                <section class="placeholder-panel prompts-placeholder" id="promptsKnowledgePanel" data-knowledge-panel="prompts" hidden>
                     <div class="panel-header">
                         <span>Prompts</span>
                     </div>

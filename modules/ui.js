@@ -151,6 +151,11 @@ export function collectDom() {
         closeAgentChatButton: document.getElementById('closeAgentChatButton'),
         chatPanel: document.getElementById('chat-panel'),
         promptLibrary: document.getElementById('promptLibrary'),
+        knowledgeTabs: document.getElementById('knowledgeTabs'),
+        knowledgeTabButtons: document.querySelectorAll('[data-knowledge-tab]'),
+        knowledgePanels: document.querySelectorAll('[data-knowledge-panel]'),
+        feedbackKnowledgePanel: document.getElementById('feedbackKnowledgePanel'),
+        promptsKnowledgePanel: document.getElementById('promptsKnowledgePanel'),
         feedbackKnowledgeList: document.getElementById('feedbackKnowledgeList'),
     };
 }
@@ -495,6 +500,27 @@ export function createUi(dom) {
         }
     }
 
+    function showKnowledgeSection(section = 'feedback') {
+        const activeSection = section === 'prompts' ? 'prompts' : 'feedback';
+
+        dom.knowledgeTabButtons.forEach(button => {
+            const isActive = button.dataset.knowledgeTab === activeSection;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', String(isActive));
+        });
+
+        dom.knowledgePanels.forEach(panel => {
+            panel.hidden = panel.dataset.knowledgePanel !== activeSection;
+        });
+    }
+
+    function handleKnowledgeTabsClick(event) {
+        const tab = event.target.closest('[data-knowledge-tab]');
+        if (!tab) return;
+
+        showKnowledgeSection(tab.dataset.knowledgeTab);
+    }
+
     function renderPromptLibrary() {
         if (!dom.promptLibrary) return;
 
@@ -677,6 +703,8 @@ export function createUi(dom) {
         setTaskListStatus,
         updateDateTimeDisplay,
         updateConnectionStatus,
+        showKnowledgeSection,
+        handleKnowledgeTabsClick,
         renderPromptLibrary,
         handlePromptLibraryClick,
         addUserMessage,

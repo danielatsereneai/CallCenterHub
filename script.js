@@ -88,6 +88,12 @@ function bindEvents() {
     if (dom.promptLibrary) {
         dom.promptLibrary.addEventListener('click', ui.handlePromptLibraryClick);
     }
+    if (dom.knowledgeTabs) {
+        dom.knowledgeTabs.addEventListener('click', ui.handleKnowledgeTabsClick);
+    }
+    if (dom.feedbackKnowledgeList) {
+        dom.feedbackKnowledgeList.addEventListener('click', feedback.handleKnowledgeFeedbackClick);
+    }
     if (dom.operationsTeamGrid) {
         dom.operationsTeamGrid.addEventListener('click', ui.handleOperationsClick);
     }

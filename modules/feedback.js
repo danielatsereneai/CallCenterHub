@@ -188,13 +188,16 @@ export function createFeedbackController({
         const fields = json.original_fields || {};
         const sections = splitFeedbackSections(task.task_description || json.reviewed_output || json.ai_output || '');
         return `
-        <article class="feedback-document">
+        <article class="feedback-document is-minimized">
             <header class="feedback-document-header">
                 <div>
                     <p class="eyebrow">Feedback Document</p>
                     <h3>${escapeHtml(task.task_name || 'Feedback Submission')}</h3>
                 </div>
-                <span class="chip">${escapeHtml(fields.submissionType || json.feedback_type || 'General')}</span>
+                <div class="feedback-document-actions">
+                    <span class="chip">${escapeHtml(fields.submissionType || json.feedback_type || 'General')}</span>
+                    <button class="chat-option feedback-document-toggle" type="button" data-feedback-toggle aria-expanded="false">Expand</button>
+                </div>
             </header>
             <dl class="feedback-document-meta">
                 <div><dt>Agent</dt><dd>${escapeHtml(fields.agentEmail || json.agent_email || 'Not provided')}</dd></div>
@@ -215,6 +218,19 @@ export function createFeedbackController({
 
     function isFeedbackTask(task) {
         return parseTaskJson(task.Json)?.source === FEEDBACK_SOURCE;
+    }
+
+    function handleKnowledgeFeedbackClick(event) {
+        const toggleButton = event.target.closest('[data-feedback-toggle]');
+        if (!toggleButton) return;
+
+        const documentPanel = toggleButton.closest('.feedback-document');
+        if (!documentPanel) return;
+
+        const shouldMinimize = !documentPanel.classList.contains('is-minimized');
+        documentPanel.classList.toggle('is-minimized', shouldMinimize);
+        toggleButton.textContent = shouldMinimize ? 'Expand' : 'Minimise';
+        toggleButton.setAttribute('aria-expanded', String(!shouldMinimize));
     }
 
     function getFeedbackTimestamp(task) {
@@ -274,6 +290,7 @@ export function createFeedbackController({
         rewriteFeedback,
         saveFeedback,
         renderKnowledgeFeedback,
+        handleKnowledgeFeedbackClick,
         DEFAULT_AI_OUTPUT_PLACEHOLDER,
     };
 }

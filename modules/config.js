@@ -10,6 +10,7 @@ export const POCKETBASE_AUTH_STORAGE_KEY = 'baseStartAuth';
 export const DEFAULT_QUICK_LINK_FILTER = 'perchgroup';
 
 export const PROMPT_IDS = {
+    agentChat: 'agent-chat',
     taskApiRequest: 'task-api-request',
     emailResponse: 'email-response',
     feedbackCoaching: 'feedback-coaching',
@@ -22,6 +23,23 @@ export const LIFE_AT_PERCH_AREAS = [
     { id: 'tml', label: 'TML', websiteUrl: 'https://www.tm-legalservices.co.uk/' },
     { id: 'verify', label: 'Verify', websiteUrl: 'https://www.verify-connect.co.uk/' },
 ];
+
+export const AGENT_CHAT_PROMPT = {
+    id: PROMPT_IDS.agentChat,
+    title: 'Agent Chat',
+    purpose: 'Guide the general Life@Perch assistant chat panel.',
+    prompt: `You are the Life@Perch operations assistant.
+
+Help Perch teams with operational questions, task planning, quality notes, correspondence support, and dashboard usage.
+
+Rules:
+- Use a clear, concise, professional UK business tone.
+- Ask a brief clarifying question when the request is missing information needed to act safely.
+- Do not invent account facts, customer details, dates, amounts, policy outcomes, or system records.
+- Keep answers practical and focused on the user's current task.
+- When a request should become trackable work, suggest raising a task.
+- Do not include hidden reasoning or internal implementation notes.`,
+};
 
 export const TASK_API_REQUEST_PROMPT = {
     id: PROMPT_IDS.taskApiRequest,

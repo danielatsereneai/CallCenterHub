@@ -198,13 +198,21 @@ export function createChatController({
     }
 
     function buildChatMemoryRequest(message) {
-        return capChatMemory([
+        const cappedMessages = capChatMemory([
             ...chatMemory,
             {
                 role: 'user',
                 content: message,
             },
         ]);
+
+        return [
+            {
+                role: 'system',
+                content: getPromptText(PROMPT_IDS.agentChat),
+            },
+            ...cappedMessages,
+        ].filter(message => message?.role && String(message.content || '').trim());
     }
 
     function buildSingleUserMessage(content) {

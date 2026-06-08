@@ -35,7 +35,7 @@ This repository can be used as a GitHub template and deployed to Cloudflare Page
 - Agent chat through an Ollama-compatible `/api/chat` endpoint, with current-session chat memory capped at 20 messages.
 - Knowledge page with Feedback and Prompts tabs:
   - Feedback shows saved feedback submissions as minimised, PDF-style readable documents.
-  - Prompts shows minimisable AI prompt cards for task drafting, email response, and feedback coaching.
+  - Prompts shows minimisable AI prompt cards for agent chat, task drafting, email response, and feedback coaching.
   - Admin users can edit/reset prompts; all users can view and copy prompts.
 - Client-editable service and area configuration in `modules/config.js`.
 - Onboarding docs for GitHub template use, PocketBase, Ollama gateway setup, and Cloudflare Pages.
@@ -89,7 +89,7 @@ Current behaviour:
 
 ## AI Tools
 
-- Agent Chat: sends recent in-session chat history to the Ollama-compatible `/api/chat` endpoint, capped at 20 messages. Memory resets when the browser session/page state resets.
+- Agent Chat: uses the Knowledge Agent Chat prompt, then sends recent in-session chat history to the Ollama-compatible `/api/chat` endpoint, capped at 20 messages. Memory resets when the browser session/page state resets.
 - AI Task Draft: uses the Knowledge prompt for the task API formatter. Users only provide a pre-summary; the app adds that into the formatter prompt.
 - AI Email Response: available on the Correspondence Team dashboard. Users provide the customer email and their summary findings, then the app generates a draft email response. The generated response can be copied from the tool.
 - Feedback Coaching Rewrite: available from the dashboard and QC dashboard. Users enter feedback details, ask AI to rewrite into coaching-style content, review/edit the output, and save it as a PocketBase task on the Feedback board.

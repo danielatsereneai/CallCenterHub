@@ -13,6 +13,7 @@ import {
     getUserBoardName,
     getUserOrgId,
     getUserType,
+    isAdminUser,
 } from './utils.js';
 
 const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
@@ -82,6 +83,7 @@ export function collectDom() {
         connectionStatus: document.getElementById('connectionStatus'),
         newTaskTile: document.getElementById('newTaskTile'),
         feedbackSubmissionsTile: document.getElementById('feedbackSubmissionsTile'),
+        userManagementTile: document.getElementById('userManagementTile'),
         feedbackModal: document.getElementById('feedbackModal'),
         feedbackForm: document.getElementById('feedbackForm'),
         closeFeedbackModalButton: document.getElementById('closeFeedbackModal'),
@@ -137,6 +139,22 @@ export function collectDom() {
         teamQuickLinks: document.getElementById('teamQuickLinks'),
         tasksBoardPage: document.getElementById('tasksBoardPage'),
         knowledgePage: document.getElementById('knowledgePage'),
+        systemsPage: document.getElementById('systemsPage'),
+        refreshUsersButton: document.getElementById('refreshUsersButton'),
+        userManagementList: document.getElementById('userManagementList'),
+        userManagementForm: document.getElementById('userManagementForm'),
+        selectedUserChip: document.getElementById('selectedUserChip'),
+        managedUserIdInput: document.getElementById('managedUserId'),
+        managedUserNameInput: document.getElementById('managedUserName'),
+        managedUserEmailInput: document.getElementById('managedUserEmail'),
+        managedUserTypeInput: document.getElementById('managedUserType'),
+        managedUserOrgIdInput: document.getElementById('managedUserOrgId'),
+        managedUserVerifiedInput: document.getElementById('managedUserVerified'),
+        managedUserPasswordInput: document.getElementById('managedUserPassword'),
+        managedUserExtraFieldsInput: document.getElementById('managedUserExtraFields'),
+        userManagementStatus: document.getElementById('userManagementStatus'),
+        clearManagedUserButton: document.getElementById('clearManagedUserButton'),
+        saveManagedUserButton: document.getElementById('saveManagedUserButton'),
         boardSelect: document.getElementById('boardSelect'),
         refreshBoardButton: document.getElementById('refreshBoardButton'),
         newBoardTaskButton: document.getElementById('newBoardTaskButton'),
@@ -195,6 +213,7 @@ export function createUi(dom) {
         const isOperationsView = view === 'operations';
         const isTeamView = view === 'team';
         const isHomeView = view === 'command';
+        const isSystemsView = view === 'systems';
         dom.homeViewElements.forEach(element => {
             element.hidden = !isHomeView;
         });
@@ -202,6 +221,9 @@ export function createUi(dom) {
         dom.teamDashboardPage.hidden = !isTeamView;
         dom.tasksBoardPage.hidden = !isTasksView;
         dom.knowledgePage.hidden = !isKnowledgeView;
+        if (dom.systemsPage) {
+            dom.systemsPage.hidden = !isSystemsView;
+        }
         getNavItems().forEach(item => {
             const isActiveTeam = isTeamView && item.dataset.teamId === activeTeamId;
             item.classList.toggle('active', item.dataset.view === view && (!isTeamView || isActiveTeam));
@@ -444,6 +466,117 @@ export function createUi(dom) {
         </div>
     `),
         ].join('');
+    }
+
+    function setAdminAccess(user) {
+        const hasAdminAccess = isAdminUser(user);
+        document.querySelectorAll('.admin-only').forEach(element => {
+            element.hidden = !hasAdminAccess;
+        });
+
+        if (!hasAdminAccess && dom.systemsPage && !dom.systemsPage.hidden) {
+            showView('command');
+        }
+    }
+
+    function renderUserManagementList(users = [], selectedUserId = '') {
+        if (!dom.userManagementList) return;
+
+        if (!users.length) {
+            dom.userManagementList.innerHTML = '<div class="empty-state">No users found.</div>';
+            return;
+        }
+
+        dom.userManagementList.innerHTML = users.map(user => {
+            const displayName = getUserDisplayName(user);
+            const isSelected = user.id === selectedUserId;
+            return `
+        <button class="managed-user-row${isSelected ? ' active' : ''}" type="button" data-managed-user-id="${escapeHtml(user.id)}">
+            <span class="settings-avatar managed-user-avatar">${escapeHtml(getUserInitials(displayName))}</span>
+            <span class="managed-user-copy">
+                <b>${escapeHtml(displayName)}</b>
+                <small>${escapeHtml(user.email || 'No email')}</small>
+            </span>
+            <span class="chip">${escapeHtml(getUserType(user) || 'User')}</span>
+        </button>
+    `;
+        }).join('');
+    }
+
+    function renderManagedUserForm(user) {
+        if (!dom.userManagementForm) return;
+
+        if (!user) {
+            clearManagedUserForm();
+            return;
+        }
+
+        const extraFields = getEditableExtraUserFields(user);
+        dom.managedUserIdInput.value = user.id || '';
+        dom.managedUserNameInput.value = user.name || '';
+        dom.managedUserEmailInput.value = user.email || '';
+        dom.managedUserTypeInput.value = getUserType(user) || '';
+        dom.managedUserOrgIdInput.value = getUserOrgId(user) || '';
+        dom.managedUserVerifiedInput.value = typeof user.verified === 'boolean' ? String(user.verified) : '';
+        dom.managedUserPasswordInput.value = '';
+        dom.managedUserExtraFieldsInput.value = Object.keys(extraFields).length
+            ? JSON.stringify(extraFields, null, 2)
+            : '';
+        dom.selectedUserChip.textContent = getUserDisplayName(user);
+        setUserManagementStatus('');
+    }
+
+    function getEditableExtraUserFields(user) {
+        const reservedFields = new Set([
+            'id',
+            'collectionId',
+            'collectionName',
+            'created',
+            'updated',
+            'email',
+            'emailVisibility',
+            'name',
+            'username',
+            'verified',
+            'avatar',
+            'User Type',
+            'User_Type',
+            'user_type',
+            'userType',
+            'UserType',
+            'role',
+            'type',
+            'org_id',
+            'orgId',
+            'Org_ID',
+            'OrgId',
+            'Org ID',
+            'organisation',
+            'organization',
+            'org',
+        ]);
+
+        return Object.fromEntries(
+            Object.entries(user || {})
+                .filter(([key]) => !reservedFields.has(key)),
+        );
+    }
+
+    function clearManagedUserForm() {
+        if (!dom.userManagementForm) return;
+
+        dom.userManagementForm.reset();
+        dom.managedUserIdInput.value = '';
+        dom.selectedUserChip.textContent = 'No user selected';
+        setUserManagementStatus('');
+    }
+
+    function setUserManagementStatus(message, type = '') {
+        if (!dom.userManagementStatus) return;
+
+        dom.userManagementStatus.textContent = message;
+        dom.userManagementStatus.classList.remove('success', 'error');
+        if (type) dom.userManagementStatus.classList.add(type);
     }
 
     function openSettingsModal() {
@@ -774,6 +907,11 @@ export function createUi(dom) {
         showAppScreen,
         setQuickLinkFilter,
         showView,
+        setAdminAccess,
+        renderUserManagementList,
+        renderManagedUserForm,
+        clearManagedUserForm,
+        setUserManagementStatus,
         renderOperationsTeams,
         renderPinnedTeamNav,
         handleOperationsClick,

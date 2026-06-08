@@ -37,6 +37,18 @@ export function createPocketBaseClient({
         return parseOrThrow(response);
     }
 
+    async function updateUserRecord(recordId, userData, token) {
+        const response = await fetch(`${baseUrl}/api/collections/${userCollection}/records/${encodeURIComponent(recordId)}`, {
+            method: 'PATCH',
+            headers: {
+                ...buildAuthHeaders(token),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        });
+        return parseOrThrow(response);
+    }
+
     async function fetchCurrentUserProfile(userId, token) {
         const headers = buildAuthHeaders(token);
         const response = await fetch(`${baseUrl}/api/collections/${userCollection}/records/${encodeURIComponent(userId)}`, {
@@ -212,6 +224,7 @@ export function createPocketBaseClient({
     return {
         authenticateCommandUser,
         loadAvailableUsers,
+        updateUserRecord,
         fetchCurrentUserProfile,
         fetchPocketBaseTasks,
         createPocketBaseTask,

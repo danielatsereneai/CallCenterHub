@@ -65,7 +65,7 @@
                     <li><a href="#" class="nav-item" data-view="operations"><span class="nav-icon">◇</span><span>Operations</span></a></li>
                     <li><a href="#" class="nav-item" data-view="tasks"><span class="nav-icon">✓</span><span>Tasks</span></a></li>
                     <li><a href="#" class="nav-item" data-view="knowledge"><span class="nav-icon">▤</span><span>Knowledge</span></a></li>
-                    <li><a href="#" class="nav-item"><span class="nav-icon">⚙</span><span>Systems</span></a></li>
+                    <li><a href="#" class="nav-item admin-only" data-view="systems" hidden><span class="nav-icon">⚙</span><span>Systems</span></a></li>
                 </ul>
             </nav>
 
@@ -106,6 +106,11 @@
                                 <div class="tile-icon">✎</div>
                                 <b>Feedback Submissions</b>
                                 <span>Rewrite agent feedback into coaching notes before saving.</span>
+                            </article>
+                            <article class="action-tile admin-only" id="userManagementTile" role="button" tabindex="0" hidden>
+                                <div class="tile-icon">⚙</div>
+                                <b>User Management</b>
+                                <span>Open admin controls for PocketBase users, resets, and extra profile fields.</span>
                             </article>
                         </section>
                     </div>
@@ -374,6 +379,85 @@
                     <div class="prompt-library" id="promptLibrary">
                         <div class="empty-state">Loading prompts...</div>
                     </div>
+                </section>
+            </section>
+
+            <section class="systems-page" id="systemsPage" hidden>
+                <div class="tasks-board-header">
+                    <div>
+                        <p class="eyebrow">Admin Only</p>
+                        <h2>Systems</h2>
+                        <p class="subtext">User management controls for PocketBase dashboard accounts.</p>
+                    </div>
+                    <button class="chat-option" id="refreshUsersButton" type="button">Refresh Users</button>
+                </div>
+
+                <section class="systems-layout" aria-label="User management">
+                    <aside class="user-management-list-panel">
+                        <div class="panel-header">
+                            <span>User Management</span>
+                        </div>
+                        <div class="user-management-list" id="userManagementList">
+                            <div class="empty-state">Open Systems to load users.</div>
+                        </div>
+                    </aside>
+
+                    <section class="user-management-editor">
+                        <div class="panel-header">
+                            <span>Edit User</span>
+                            <span class="chip" id="selectedUserChip">No user selected</span>
+                        </div>
+
+                        <form class="task-form user-management-form" id="userManagementForm">
+                            <input id="managedUserId" type="hidden">
+
+                            <label>
+                                <span>Name</span>
+                                <input id="managedUserName" type="text" autocomplete="off">
+                            </label>
+
+                            <label>
+                                <span>Email</span>
+                                <input id="managedUserEmail" type="email" autocomplete="off">
+                            </label>
+
+                            <label>
+                                <span>User Type</span>
+                                <input id="managedUserType" type="text" placeholder="Admin or User">
+                            </label>
+
+                            <label>
+                                <span>Org ID</span>
+                                <input id="managedUserOrgId" type="text" placeholder="PerchGroup, ACI, Connect, TML, Verify">
+                            </label>
+
+                            <label>
+                                <span>Verified</span>
+                                <select id="managedUserVerified">
+                                    <option value="">No change</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span>Password Reset</span>
+                                <input id="managedUserPassword" type="password" autocomplete="new-password" placeholder="Enter a new password">
+                            </label>
+
+                            <label class="full-field">
+                                <span>Additional Fields JSON</span>
+                                <textarea id="managedUserExtraFields" rows="10" spellcheck="false" placeholder='{"department":"QC","extension":"1234"}'></textarea>
+                            </label>
+
+                            <div class="task-form-status" id="userManagementStatus" aria-live="polite"></div>
+
+                            <div class="modal-actions">
+                                <button class="chat-option" id="clearManagedUserButton" type="button">Clear</button>
+                                <button class="send-button" id="saveManagedUserButton" type="submit">Save User</button>
+                            </div>
+                        </form>
+                    </section>
                 </section>
             </section>
         </main>

@@ -1,4 +1,9 @@
-import { DEFAULT_QUICK_LINK_FILTER, EMAIL_RESPONSE_PROMPT, TASK_API_REQUEST_PROMPT } from './config.js';
+import {
+    DEFAULT_QUICK_LINK_FILTER,
+    EMAIL_RESPONSE_PROMPT,
+    FEEDBACK_COACHING_PROMPT,
+    TASK_API_REQUEST_PROMPT,
+} from './config.js';
 import {
     escapeHtml,
     formatBoolean,
@@ -11,6 +16,7 @@ const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
 const PROMPT_LIBRARY_ITEMS = [
     TASK_API_REQUEST_PROMPT,
     EMAIL_RESPONSE_PROMPT,
+    FEEDBACK_COACHING_PROMPT,
 ];
 const TEAM_DASHBOARDS = [
     {

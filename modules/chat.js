@@ -2,6 +2,7 @@ import {
     AVAILABLE_MODELS,
     DEFAULT_OLLAMA_MODEL,
     EMAIL_RESPONSE_PROMPT,
+    FEEDBACK_COACHING_PROMPT,
     LIFE_AT_PERCH_AREAS,
     OLLAMA_BASE_URL,
     POCKETBASE_COLLECTION,
@@ -461,25 +462,7 @@ ${summaryFindings}`;
     }
 
     function buildFeedbackCoachingPrompt(fields) {
-        return `You are a Quality Control coaching assistant for Life@Perch.
-
-Rewrite the submitted feedback into detailed, practical coaching-style feedback for an agent.
-
-Rules:
-- Use a clear, professional UK business tone.
-- Do not invent facts, promises, dates, call content, policy outcomes, or evidence.
-- Keep the feedback specific to the supplied notes.
-- If the feedback is positive, preserve the praise and identify repeatable behaviours.
-- If action is needed, make the coaching direct, fair, and constructive.
-- Return only the coaching document text. Do not wrap it in markdown fences.
-
-Use these section headings:
-Summary
-Observed Issue or Positive Behaviour
-Impact
-Coaching Guidance
-Action Required
-Suggested Follow-up
+        return `${FEEDBACK_COACHING_PROMPT.prompt}
 
 Feedback submission:
 ${JSON.stringify(fields, null, 2)}`;

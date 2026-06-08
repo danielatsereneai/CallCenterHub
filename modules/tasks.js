@@ -197,7 +197,7 @@ export function createTaskController({
         populateAssignedSelect(getCurrentUser() ? getUserAssignmentValue(getCurrentUser()) : '');
         dom.taskIdInput.value = Date.now();
         document.getElementById('taskStatus').value = 'new';
-        document.getElementById('taskBoardName').value = getSelectedBoardName();
+        populateTaskBoardSelect(getSelectedBoardName());
         ui.setTaskFormStatus('');
         dom.taskModal.classList.add('open');
         dom.taskModal.setAttribute('aria-hidden', 'false');
@@ -206,7 +206,7 @@ export function createTaskController({
 
     function openBoardTaskModal() {
         openTaskModal();
-        document.getElementById('taskBoardName').value = getSelectedBoardName();
+        populateTaskBoardSelect(getSelectedBoardName());
     }
 
     function openTaskModalWithDraft(taskDraft) {
@@ -705,10 +705,10 @@ export function createTaskController({
         renderTaskComments();
         const assignedValue = getTaskAssignedValue(task);
         populateAssignedSelect(assignedValue);
+        populateTaskBoardSelect(getTaskBoardName(task));
         document.getElementById('taskName').value = task.task_name || '';
         document.getElementById('taskDueDate').value = toDateTimeLocalValue(task.due_date);
         document.getElementById('taskAssigned').value = resolveAssignmentValue(assignedValue);
-        document.getElementById('taskBoardName').value = getTaskBoardName(task);
         document.getElementById('taskStatus').value = getTaskStatus(task);
         document.getElementById('taskDescription').value = task.task_description || '';
         document.getElementById('taskNotes').value = task.Notes || '';
@@ -721,10 +721,10 @@ export function createTaskController({
         taskJsonDraft = parseTaskJson(taskDraft.Json);
         renderTaskComments();
         populateAssignedSelect(assignedValue);
+        populateTaskBoardSelect(taskDraft.board_name || getSelectedBoardName());
         document.getElementById('taskName').value = taskDraft.task_name;
         document.getElementById('taskDueDate').value = '';
         document.getElementById('taskAssigned').value = resolveAssignmentValue(assignedValue);
-        document.getElementById('taskBoardName').value = taskDraft.board_name || getSelectedBoardName();
         document.getElementById('taskStatus').value = getTaskStatus(taskDraft);
         document.getElementById('taskDescription').value = taskDraft.task_description;
         document.getElementById('taskNotes').value = taskDraft.Notes;
@@ -772,6 +772,28 @@ export function createTaskController({
             ...boardNames.map(board => `<option value="${escapeHtml(board)}">${escapeHtml(board)}</option>`),
         ].join('');
         dom.boardSelect.value = boardNames.includes(currentValue) ? currentValue : 'all';
+        populateTaskBoardSelect(document.getElementById('taskBoardName')?.value || getSelectedBoardName());
+    }
+
+    function populateTaskBoardSelect(selectedValue = '') {
+        const boardSelect = document.getElementById('taskBoardName');
+        if (!boardSelect) return;
+
+        const normalizedSelectedValue = String(selectedValue || '').trim();
+        const defaultBoardNames = LIFE_AT_PERCH_AREAS.map(area => area.label);
+        const savedBoardNames = [...new Set(savedTasks.map(getTaskBoardName).filter(Boolean))]
+            .filter(board => !defaultBoardNames.includes(board))
+            .sort((a, b) => a.localeCompare(b));
+        const boardNames = [...defaultBoardNames, ...savedBoardNames];
+        const optionNames = normalizedSelectedValue && !boardNames.includes(normalizedSelectedValue)
+            ? [normalizedSelectedValue, ...boardNames]
+            : boardNames;
+
+        boardSelect.innerHTML = [
+            '<option value="">No board</option>',
+            ...optionNames.map(board => `<option value="${escapeHtml(board)}">${escapeHtml(board)}</option>`),
+        ].join('');
+        boardSelect.value = optionNames.includes(normalizedSelectedValue) ? normalizedSelectedValue : '';
     }
 
     function renderKanbanBoard() {

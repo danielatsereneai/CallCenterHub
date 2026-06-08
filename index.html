@@ -428,11 +428,11 @@
     </div>
 
     <div class="modal-backdrop" id="taskModal" aria-hidden="true">
-        <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+        <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskName">
             <div class="modal-header">
-                <div>
-                    <p class="eyebrow">PocketBase Task</p>
-                    <h2 id="taskModalTitle">New Task</h2>
+                <div class="task-title-block">
+                    <p class="eyebrow" id="taskModalTitle">New Task</p>
+                    <input class="task-title-input" id="taskName" name="task_name" type="text" placeholder="Name the task" required>
                 </div>
                 <button class="icon-button" id="closeTaskModal" type="button" aria-label="Close task form">×</button>
             </div>
@@ -453,11 +453,6 @@
                 </section>
 
                 <label>
-                    <span>Task Name</span>
-                    <input id="taskName" name="task_name" type="text" placeholder="Name the task" required>
-                </label>
-
-                <label>
                     <span>Due Date</span>
                     <input id="taskDueDate" name="due_date" type="datetime-local">
                 </label>
@@ -471,7 +466,9 @@
 
                 <label>
                     <span>Board Name</span>
-                    <input id="taskBoardName" name="board_name" type="text" placeholder="Board or project">
+                    <select id="taskBoardName" name="board_name">
+                        <option value="">No board</option>
+                    </select>
                 </label>
 
                 <label>
@@ -495,10 +492,7 @@
                     <textarea id="taskNotes" name="Notes" rows="3" placeholder="Context, links, or reminders"></textarea>
                 </label>
 
-                <label>
-                    <span>Task ID</span>
-                    <input id="taskId" name="task_id" type="number" min="1">
-                </label>
+                <input id="taskId" name="task_id" type="hidden">
 
                 <label>
                     <span>Attachment</span>

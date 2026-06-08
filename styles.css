@@ -1490,6 +1490,37 @@ body.is-authenticated .auth-screen {
   font-size: 28px;
 }
 
+.task-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title-input {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  outline: none;
+  padding: 4px 6px;
+}
+
+.task-title-input:hover,
+.task-title-input:focus {
+  border-color: rgba(35, 213, 255, 0.36);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: 0 0 0 3px rgba(35, 213, 255, 0.08);
+}
+
+.task-title-input::placeholder {
+  color: rgba(237, 250, 255, 0.58);
+}
+
 .icon-button {
   width: 40px;
   height: 40px;
@@ -1608,6 +1639,14 @@ body.is-authenticated .auth-screen {
   font-size: 13px;
   line-height: 1.45;
   margin-top: 5px;
+}
+
+.ai-task-draft label {
+  grid-column: 1 / -1;
+}
+
+.ai-task-draft textarea {
+  min-height: 132px;
 }
 
 .ai-task-draft .send-button {

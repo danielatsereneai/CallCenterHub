@@ -6,6 +6,7 @@ import {
     normalizeAssignmentValue,
     normalizeTaskStatus,
     parseTaskJson,
+    toUserFacingErrorMessage,
 } from '../modules/utils.js';
 
 test('escapeHtml escapes browser-significant characters', () => {
@@ -32,4 +33,19 @@ test('parseTaskJson safely handles objects, JSON strings, and invalid JSON', () 
 test('normalizeAssignmentValue supports relation arrays and expanded objects', () => {
     assert.equal(normalizeAssignmentValue(['user-1']), 'user-1');
     assert.equal(normalizeAssignmentValue({ id: 'user-2', email: 'x@example.com' }), 'user-2');
+});
+
+test('toUserFacingErrorMessage hides raw backend details for common failures', () => {
+    assert.equal(
+        toUserFacingErrorMessage(new Error('PocketBase 403: Only admins can update this field')),
+        'You do not have access to complete that action. Please sign in again or contact an admin.',
+    );
+    assert.equal(
+        toUserFacingErrorMessage(new Error('HTTP error! status: 500')),
+        'The service returned an error. Wait a moment and try again.',
+    );
+    assert.equal(
+        toUserFacingErrorMessage(new Error('AI request timed out.')),
+        'The request timed out. Please try again.',
+    );
 });

@@ -191,3 +191,38 @@ export async function copyTextToClipboard(text) {
         document.body.removeChild(textarea);
     }
 }
+
+export function toUserFacingErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
+    const message = String(error?.message || error || '').trim();
+    if (!message) return fallback;
+
+    if (/failed to fetch|networkerror|load failed/i.test(message)) {
+        return 'The service could not be reached. Check your connection and try again.';
+    }
+
+    if (/401|403|unauthorized|forbidden/i.test(message)) {
+        return 'You do not have access to complete that action. Please sign in again or contact an admin.';
+    }
+
+    if (/404|not found/i.test(message)) {
+        return 'The requested record or service could not be found. Refresh and try again.';
+    }
+
+    if (/429|rate/i.test(message)) {
+        return 'The service is busy or rate limited. Wait a moment and try again.';
+    }
+
+    if (/5\d\d|http error/i.test(message)) {
+        return 'The service returned an error. Wait a moment and try again.';
+    }
+
+    if (/timeout|timed out|abort/i.test(message)) {
+        return 'The request timed out. Please try again.';
+    }
+
+    if (/PocketBase \d+:/i.test(message)) {
+        return 'PocketBase could not complete the request. Check your permissions and try again.';
+    }
+
+    return message;
+}

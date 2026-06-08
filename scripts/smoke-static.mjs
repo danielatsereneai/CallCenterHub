@@ -61,7 +61,7 @@ try {
     assert.ok(scriptHtml?.[1], 'index.html should reference a module script');
 
     const runtimeConfig = await fetchText(`/${runtimeConfigHtml[1]}`);
-    assert.match(runtimeConfig, /window\.LIFE_AT_PERCH_CONFIG/);
+    assert.match(runtimeConfig, /globalThis\.LIFE_AT_PERCH_CONFIG/);
 
     const scriptJs = await fetchText(`/${scriptHtml[1]}`);
     const importedModules = [...scriptJs.matchAll(/from ['"](\.\/modules\/[^'"]+)['"]/g)]

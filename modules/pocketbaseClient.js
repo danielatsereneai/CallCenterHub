@@ -175,6 +175,10 @@ export function createPocketBaseClient({
             payload.assigned = taskData.assigned;
         }
 
+        if (taskData.removeAttachment) {
+            payload.attatchemnt = null;
+        }
+
         let body;
         if (hasAttachment) {
             body = new FormData();

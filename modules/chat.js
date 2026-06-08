@@ -8,11 +8,13 @@ import {
     TASK_STATUSES,
 } from './config.js';
 import { getPromptText } from './prompts.js';
-import { createTaskNameFromText, normalizeTaskStatus } from './utils.js';
+import { createTaskNameFromText, normalizeTaskStatus, toUserFacingErrorMessage } from './utils.js';
 
 const TASK_API_REQUEST_URL = `/api/collections/${POCKETBASE_COLLECTION}/records`;
 const CHAT_MEMORY_MESSAGE_LIMIT = 20;
 const AI_REQUEST_TIMEOUT_MS = 60000;
+const AI_REQUEST_MAX_ATTEMPTS = 2;
+const AI_REQUEST_RETRY_DELAY_MS = 750;
 
 export function createChatController({
     dom,
@@ -242,6 +244,38 @@ export function createChatController({
         dom.connectionStatus.textContent = 'Thinking...';
         dom.connectionStatus.classList.add('loading');
         dom.connectionStatus.classList.remove('ready');
+
+        try {
+            return await queryOllamaWithRetry(messages);
+        } finally {
+            dom.connectionStatus.textContent = 'Ready';
+            dom.connectionStatus.classList.remove('loading');
+            dom.connectionStatus.classList.add('ready');
+        }
+    }
+
+    async function queryOllamaWithRetry(messages) {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= AI_REQUEST_MAX_ATTEMPTS; attempt += 1) {
+            try {
+                return await queryOllamaOnce(messages);
+            } catch (error) {
+                lastError = error;
+                console.error('Ollama query error:', error);
+
+                if (attempt >= AI_REQUEST_MAX_ATTEMPTS || !isRetryableAiError(error)) {
+                    throw new Error(toUserFacingErrorMessage(error, 'AI request failed. Please try again.'));
+                }
+
+                await wait(AI_REQUEST_RETRY_DELAY_MS * attempt);
+            }
+        }
+
+        throw new Error(toUserFacingErrorMessage(lastError, 'AI request failed. Please try again.'));
+    }
+
+    async function queryOllamaOnce(messages) {
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
 
@@ -271,17 +305,26 @@ export function createChatController({
 
             throw new Error('No response from model');
         } catch (error) {
-            console.error('Ollama query error:', error);
             if (error.name === 'AbortError') {
-                throw new Error('AI request timed out. Please try again.');
+                throw new Error('AI request timed out.');
             }
             throw error;
         } finally {
             window.clearTimeout(timeoutId);
-            dom.connectionStatus.textContent = 'Ready';
-            dom.connectionStatus.classList.remove('loading');
-            dom.connectionStatus.classList.add('ready');
         }
+    }
+
+    function isRetryableAiError(error) {
+        const message = String(error?.message || '').toLowerCase();
+        return error?.name === 'AbortError'
+            || message.includes('timed out')
+            || message.includes('failed to fetch')
+            || message.includes('http error! status: 429')
+            || message.includes('http error! status: 5');
+    }
+
+    function wait(delayMs) {
+        return new Promise(resolve => window.setTimeout(resolve, delayMs));
     }
 
     async function handleChatActionClick(event) {

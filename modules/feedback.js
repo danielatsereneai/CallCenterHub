@@ -2,6 +2,7 @@ import {
     escapeHtml,
     formatDateTime,
     parseTaskJson,
+    toUserFacingErrorMessage,
 } from './utils.js';
 
 const FEEDBACK_SOURCE = 'feedback-submission';
@@ -74,8 +75,9 @@ export function createFeedbackController({
             setFeedbackStatus('AI rewrite ready. Review and edit before saving.', 'success');
         } catch (error) {
             console.error('Feedback rewrite error:', error);
-            setFeedbackStatus(error.message, 'error');
-            onSystemMessage(`Feedback rewrite failed: ${error.message}`, 'error');
+            const message = toUserFacingErrorMessage(error, 'Feedback rewrite failed. Please try again.');
+            setFeedbackStatus(message, 'error');
+            onSystemMessage(message, 'error');
         } finally {
             dom.rewriteFeedbackButton.disabled = false;
             dom.rewriteFeedbackButton.textContent = 'Rewrite with AI';
@@ -111,8 +113,9 @@ export function createFeedbackController({
             return record;
         } catch (error) {
             console.error('Feedback save error:', error);
-            setFeedbackStatus(error.message, 'error');
-            onSystemMessage(`Feedback save failed: ${error.message}`, 'error');
+            const message = toUserFacingErrorMessage(error, 'Feedback could not be saved.');
+            setFeedbackStatus(message, 'error');
+            onSystemMessage(message, 'error');
             return null;
         } finally {
             dom.saveFeedbackButton.disabled = false;

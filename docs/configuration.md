@@ -5,7 +5,7 @@ Life@Perch is static and has no build-time environment loader. Runtime service c
 For each environment, edit or replace `config.runtime.js`:
 
 ```js
-window.LIFE_AT_PERCH_CONFIG = {
+globalThis.LIFE_AT_PERCH_CONFIG = {
     OLLAMA_BASE_URL: 'https://ollama-gateway.example.com',
     POCKETBASE_BASE_URL: 'https://pocketbase.example.com',
     POCKETBASE_COLLECTION: 'base_start_tasks',

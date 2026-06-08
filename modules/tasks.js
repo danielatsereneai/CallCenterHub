@@ -15,6 +15,7 @@ import {
     normalizeOrgBoardName,
     normalizeTaskStatus,
     parseTaskJson,
+    toUserFacingErrorMessage,
     toDateTimeLocalValue,
 } from './utils.js';
 
@@ -62,7 +63,7 @@ export function createTaskController({
             availableUsers = getCurrentUser() ? [getCurrentUser()] : [];
 
             if (!options.silent) {
-                onSystemMessage(`User list load failed: ${error.message}`);
+                onSystemMessage(toUserFacingErrorMessage(error, 'User list could not be loaded.'));
             }
         }
 
@@ -91,14 +92,15 @@ export function createTaskController({
             }
         } catch (error) {
             console.error('PocketBase task load error:', error);
+            const message = toUserFacingErrorMessage(error, 'Tasks could not be loaded.');
             savedTasks = [];
             dom.taskCount.textContent = '0';
-            ui.setTaskListStatus(error.message, 'error');
+            ui.setTaskListStatus(message, 'error');
             populateBoardSelect();
             renderKanbanBoard();
 
             if (!options.silent) {
-                onSystemMessage(`Task load failed: ${error.message}`);
+                onSystemMessage(message);
             }
         }
     }
@@ -401,8 +403,9 @@ export function createTaskController({
             setTimeout(closeTaskModal, 500);
         } catch (error) {
             console.error('PocketBase task save error:', error);
-            ui.setTaskFormStatus(error.message, 'error');
-            onSystemMessage(`Task save failed: ${error.message}`);
+            const message = toUserFacingErrorMessage(error, 'Task could not be saved.');
+            ui.setTaskFormStatus(message, 'error');
+            onSystemMessage(message);
         } finally {
             dom.saveTaskButton.disabled = false;
         }
@@ -449,7 +452,7 @@ export function createTaskController({
             ui.setTaskFormStatus('Task chat message sent.', 'success');
         } catch (error) {
             console.error('PocketBase task comment error:', error);
-            ui.setTaskFormStatus(`Task chat message failed: ${error.message}`, 'error');
+            ui.setTaskFormStatus(toUserFacingErrorMessage(error, 'Task chat message could not be sent.'), 'error');
         } finally {
             dom.addTaskCommentButton.disabled = false;
         }
@@ -540,7 +543,7 @@ export function createTaskController({
             savedTasks[taskIndex] = previousTask;
             renderSavedTasks();
             renderKanbanBoard();
-            onSystemMessage(`Task status update failed: ${error.message}`);
+            onSystemMessage(toUserFacingErrorMessage(error, 'Task status could not be updated.'));
         }
     }
 
@@ -585,6 +588,7 @@ export function createTaskController({
     function getTaskFormData() {
         const dueDateInput = document.getElementById('taskDueDate').value;
         const attachment = document.getElementById('taskAttachment').files[0] || null;
+        const removeAttachment = document.getElementById('taskAttachmentRemove').checked && !attachment;
         const jsonValue = { ...taskJsonDraft };
         const taskStatus = normalizeTaskStatus(document.getElementById('taskStatus').value);
         jsonValue.status = taskStatus;
@@ -608,6 +612,7 @@ export function createTaskController({
             Notes: document.getElementById('taskNotes').value.trim(),
             task_id: Number(dom.taskIdInput.value || Date.now()),
             attatchemnt: attachment,
+            removeAttachment,
             token: getCurrentUserToken() || '',
         };
     }
@@ -802,7 +807,7 @@ export function createTaskController({
         try {
             await loadTaskComments(recordId);
         } catch (error) {
-            ui.setTaskFormStatus(`Task chat loaded from legacy task data: ${error.message}`, 'error');
+            ui.setTaskFormStatus('Task chat loaded from legacy task data.', 'error');
         }
     }
 
@@ -881,6 +886,7 @@ export function createTaskController({
         document.getElementById('taskNotes').value = task.Notes || '';
         dom.taskIdInput.value = task.task_id || '';
         document.getElementById('taskAttachment').value = '';
+        document.getElementById('taskAttachmentRemove').checked = false;
         renderCurrentAttachment(task);
     }
 
@@ -898,6 +904,7 @@ export function createTaskController({
         document.getElementById('taskNotes').value = taskDraft.Notes;
         dom.taskIdInput.value = taskDraft.task_id;
         document.getElementById('taskAttachment').value = '';
+        document.getElementById('taskAttachmentRemove').checked = false;
         renderCurrentAttachment(null);
     }
 
@@ -929,6 +936,11 @@ export function createTaskController({
                 return;
             }
 
+            if (field.id === 'taskAttachmentRemove') {
+                field.disabled = isViewing;
+                return;
+            }
+
             if (field.tagName === 'SELECT') {
                 field.disabled = isViewing;
             } else {
@@ -944,6 +956,7 @@ export function createTaskController({
         const attachment = getTaskAttachmentName(task);
         if (!task?.id || !attachment) {
             attachmentPanel.textContent = 'No attachment saved.';
+            setAttachmentRemoveVisibility(false);
             return;
         }
 
@@ -951,6 +964,18 @@ export function createTaskController({
         attachmentPanel.innerHTML = `
             <a href="${escapeHtml(attachmentUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(attachment)}</a>
         `;
+        setAttachmentRemoveVisibility(true);
+    }
+
+    function setAttachmentRemoveVisibility(isVisible) {
+        const removeInput = document.getElementById('taskAttachmentRemove');
+        const removeControl = removeInput?.closest('.inline-checkbox');
+        if (!removeInput || !removeControl) return;
+
+        removeControl.hidden = !isVisible;
+        if (!isVisible) {
+            removeInput.checked = false;
+        }
     }
 
     function getTaskAttachmentName(task) {

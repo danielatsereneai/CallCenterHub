@@ -22,7 +22,17 @@ test('stale manual PocketBase token controls are removed from runtime wiring', (
 test('runtime config is loaded before the app module', () => {
     const indexHtml = read('index.html');
     assert.match(indexHtml, /<script src="config\.runtime\.js"><\/script>\s*<script type="module" src="script\.js"><\/script>/);
-    assert.match(read('config.runtime.js'), /window\.LIFE_AT_PERCH_CONFIG/);
+    assert.match(read('config.runtime.js'), /globalThis\.LIFE_AT_PERCH_CONFIG/);
+});
+
+test('task attachment removal control is present', () => {
+    const indexHtml = read('index.html');
+    const taskCode = read('modules/tasks.js');
+    const pbClient = read('modules/pocketbaseClient.js');
+
+    assert.match(indexHtml, /id="taskAttachmentRemove"/);
+    assert.match(taskCode, /removeAttachment/);
+    assert.match(pbClient, /payload\.attatchemnt = null/);
 });
 
 test('legacy Command Center user branding is removed', () => {

@@ -87,14 +87,14 @@ The repository now includes a lightweight Node test harness, Cloudflare Pages `_
 - Team dashboard definitions now live in `modules/config.js`.
 - Clipboard handling is centralized in `modules/utils.js`.
 - Several features rely on direct DOM lookups by ID inside controllers instead of using collected DOM references consistently, for example `modules/tasks.js:599-629`.
-- Error handling often displays raw backend error messages to users, for example `script.js:204-207` and `modules/tasks.js:424-427`. That is useful for debugging but may leak implementation details in production.
+- User-facing error handling now maps common backend/network failures to safer messages while preserving developer console logs.
 
 ## 8. Performance Concerns
 
 - Task loading fetches all pages of matching task records into memory in `modules/pocketbaseClient.js:69-107`. This can become slow for large task collections.
 - Dashboard, Kanban, and board controls rerender large chunks of HTML after many operations, for example `modules/tasks.js:417-423`, `modules/tasks.js:541-550`, and `modules/tasks.js:950-966`.
 - Each refresh can also load users, up to 100 records, in `modules/tasks.js:62-83` and `modules/pocketbaseClient.js:27-37`.
-- AI requests now have a timeout. Retry/backoff behavior is still not implemented.
+- AI requests now have a timeout and one retry with short backoff for retryable gateway failures.
 - There is no asset bundling, cache-busting, or minification; Cloudflare `_headers` now supplies security headers.
 
 ## 9. Missing Tests
@@ -152,10 +152,7 @@ The repository now includes a lightweight Node test harness, Cloudflare Pages `_
 ### P2 Improvement
 
 1. Split `modules/tasks.js` into task API/state, render helpers, task form, comments, and Kanban modules.
-2. Add attachment remove support.
-3. Add user-facing, less technical error messages while keeping detailed logs for developers.
-4. Rename `attatchemnt` through a coordinated schema/code migration when convenient.
-5. Add retry/backoff for AI gateway failures.
+2. Rename `attatchemnt` through a coordinated schema/code migration when convenient.
 
 ## 13. Files Reviewed
 
@@ -204,9 +201,9 @@ The repository now includes a lightweight Node test harness, Cloudflare Pages `_
 
 ## 15. Final Readiness Score Out Of 10
 
-7/10 for production release.
+8/10 for production release.
 
-The repo-owned release blockers from the first audit are substantially improved: it now has session-only auth persistence, org-scoped rule documentation, task comments as a collection, security headers, tests, deployment docs, AI gateway policy docs, stale-code cleanup, attachment display/upload support, and cleaner branding. The remaining blockers are external verification of live PocketBase rules and live AI gateway controls, plus deeper browser/accessibility coverage.
+The repo-owned release blockers from the first audit are substantially improved: it now has session-only auth persistence, org-scoped rule documentation, task comments as a collection, security headers, tests, deployment docs, AI gateway policy docs, stale-code cleanup, attachment display/upload/remove support, retrying AI requests, safer user-facing errors, and cleaner branding. The remaining blockers are external verification of live PocketBase rules and live AI gateway controls, plus deeper authenticated browser/accessibility coverage.
 
 ## Commands Run And Results
 
@@ -286,4 +283,4 @@ This confirms the static app shell loads, the login form is visible, the module 
 npm run verify
 ```
 
-Result after remediation: passed. `check:syntax` ran `node --check` against `script.js`, every file in `modules/`, and every test file. `node --test` ran 10 tests covering session-storage auth migration, Cloudflare headers, stale token-control removal, runtime config loading, branding cleanup, HTML escaping, status normalization, org-board normalization, JSON parsing, and assignment normalization. `npm run smoke` started a temporary local static server and verified the app shell, runtime config file, module files, CSP file, nav, task modal, knowledge tabs, and stale branding removal.
+Result after remediation: passed. `check:syntax` ran `node --check` against `script.js`, every file in `modules/`, and every test file. `node --test` ran 13 tests covering session-storage auth migration, AI retry behavior, Cloudflare headers, stale token-control removal, runtime config loading, attachment removal controls, branding cleanup, HTML escaping, status normalization, org-board normalization, JSON parsing, assignment normalization, and safer user-facing error messages. `npm run smoke` started a temporary local static server and verified the app shell, runtime config file, module files, CSP file, nav, task modal, knowledge tabs, and stale branding removal.

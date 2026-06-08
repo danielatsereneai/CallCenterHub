@@ -8,7 +8,12 @@ import { createFeedbackController } from './modules/feedback.js';
 import { createPocketBaseClient } from './modules/pocketbaseClient.js';
 import { createTaskController } from './modules/tasks.js';
 import { collectDom, createUi } from './modules/ui.js';
-import { copyTextToClipboard, getUserDisplayName, isAdminUser } from './modules/utils.js';
+import {
+    copyTextToClipboard,
+    getUserDisplayName,
+    isAdminUser,
+    toUserFacingErrorMessage,
+} from './modules/utils.js';
 
 const dom = collectDom();
 const ui = createUi(dom);
@@ -190,7 +195,7 @@ async function loginCommandUser(event) {
         await startAuthenticatedApp();
     } catch (error) {
         console.error('PocketBase login error:', error);
-        ui.setAuthStatus(error.message, 'error');
+        ui.setAuthStatus(toUserFacingErrorMessage(error, 'Login failed. Please try again.'), 'error');
     } finally {
         dom.loginButton.disabled = false;
     }
@@ -240,11 +245,12 @@ async function refreshCurrentUserProfile({ renderSettings = false, silent = fals
         }
     } catch (error) {
         console.error('PocketBase profile load error:', error);
+        const message = toUserFacingErrorMessage(error, 'Profile refresh failed. Please try again.');
         if (renderSettings) {
-            ui.renderUserSettings(currentUser, `Profile refresh failed: ${error.message}`);
+            ui.renderUserSettings(currentUser, message);
         }
         if (!silent) {
-            ui.addSystemMessage(`Profile refresh failed: ${error.message}`, 'error');
+            ui.addSystemMessage(message, 'error');
         }
     }
 }
@@ -308,8 +314,9 @@ async function generateAiTaskDraft() {
         ui.setTaskFormStatus('Review the AI-created task API request, then save it to PocketBase.', 'success');
     } catch (error) {
         console.error('AI task draft error:', error);
-        ui.setTaskFormStatus(error.message, 'error');
-        ui.addSystemMessage(`AI task draft failed: ${error.message}`, 'error');
+        const message = toUserFacingErrorMessage(error, 'AI task draft failed. Please try again.');
+        ui.setTaskFormStatus(message, 'error');
+        ui.addSystemMessage(message, 'error');
     } finally {
         dom.generateAiTaskButton.disabled = false;
         dom.generateAiTaskButton.textContent = 'Create with AI';
@@ -339,8 +346,9 @@ async function generateEmailResponseDraft() {
         ui.setEmailResponseStatus('Response generated. Review before sending.', 'success');
     } catch (error) {
         console.error('AI email response error:', error);
-        ui.setEmailResponseStatus(error.message, 'error');
-        ui.addSystemMessage(`AI email response failed: ${error.message}`, 'error');
+        const message = toUserFacingErrorMessage(error, 'AI email response failed. Please try again.');
+        ui.setEmailResponseStatus(message, 'error');
+        ui.addSystemMessage(message, 'error');
     } finally {
         dom.generateEmailResponseButton.disabled = false;
         dom.generateEmailResponseButton.textContent = 'Generate Response';

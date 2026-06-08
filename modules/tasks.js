@@ -871,12 +871,19 @@ export function createTaskController({
     function setTaskFormMode(mode) {
         const isViewing = mode === 'view';
         const isEditing = mode === 'edit';
+        const showTaskChat = mode !== 'create';
         dom.taskModal.dataset.mode = mode;
         dom.taskModalTitle.textContent = isViewing ? 'View Task' : isEditing ? 'Edit Task' : 'New Task';
         dom.saveTaskButton.style.display = isViewing ? 'none' : '';
         dom.saveTaskButton.disabled = isViewing;
         dom.cancelTaskButton.textContent = isViewing ? 'Close' : 'Cancel';
         dom.saveTaskButton.textContent = isEditing ? 'Update Task' : 'Save Task';
+        dom.taskForm.closest('.task-detail-modal')?.classList.toggle('task-chat-hidden', !showTaskChat);
+        dom.taskForm.classList.toggle('task-chat-hidden', !showTaskChat);
+        const taskChatPanel = document.getElementById('taskCommentsSection');
+        if (taskChatPanel) {
+            taskChatPanel.hidden = !showTaskChat;
+        }
         dom.taskForm.querySelectorAll('input, textarea, select').forEach(field => {
             if (field.id === 'taskAttachment') {
                 field.closest('label').style.display = isViewing ? 'none' : '';

@@ -56,14 +56,14 @@ Issues or mismatches to watch:
 
 - The sidebar shows **Systems**, but it has no `data-view` and no active page behind it.
 - Prompt edits are stored in browser `localStorage`, not PocketBase, so custom prompts are browser-local rather than shared globally.
-- Standard users request only their org board's task records, and the browser keeps the same org filter as a defensive UI check. PocketBase collection rules should still enforce org-level access server-side before production use.
+- Task visibility is enforced in the browser UI from the loaded task list. PocketBase collection rules should also be configured server-side if org-level access must be enforced at the API/security layer.
 - The settings modal still says "Command Center User" and fallback names use "Command User"; the rest of the app is branded Life@Perch.
 - The attachment field is named `attatchemnt`. This matches the documented PocketBase schema and current code, but it is intentionally misspelled and should only be renamed with a coordinated schema/code update.
 - Local port `4177` may already be in use. Use another static-server port if needed.
 
 ## Current Dashboard Areas
 
-- Dashboard: working Quick Actions, Quick Links, and assigned-to-me PocketBase Tasks panels. Standard users request only their org board's PocketBase tasks, and dashboard results are filtered to tasks assigned to the logged-in user.
+- Dashboard: working Quick Actions, Quick Links, and assigned-to-me PocketBase Tasks panels. Dashboard task results are filtered by the logged-in user's org access.
 - Operations: team dashboard tiles for QC and Correspondence, with pin/unpin controls that save locally in the browser.
 - Team Dashboard: team-specific Quick Actions and Quick Links. QC includes Feedback Submissions. Correspondence includes AI Email Response.
 - Tasks: Kanban-style task board backed by PocketBase, with org-scoped board filtering and drag/drop status updates.

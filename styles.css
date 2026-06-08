@@ -1704,6 +1704,10 @@ body.is-authenticated .auth-screen {
   width: min(1120px, 100%);
 }
 
+.task-detail-modal.task-chat-hidden {
+  width: min(760px, 100%);
+}
+
 .settings-modal {
   width: min(620px, 100%);
 }
@@ -1780,6 +1784,10 @@ body.is-authenticated .auth-screen {
 .task-detail-form {
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   align-items: start;
+}
+
+.task-detail-form.task-chat-hidden {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .task-form-main {
@@ -1913,6 +1921,10 @@ body.is-authenticated .auth-screen {
   grid-template-rows: auto minmax(180px, 1fr) auto;
   position: sticky;
   top: 0;
+}
+
+.task-chat-panel[hidden] {
+  display: none;
 }
 
 .task-comments-header {

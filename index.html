@@ -102,6 +102,11 @@
                                 <b>New Task</b>
                                 <span>Create a task and save it to PocketBase.</span>
                             </article>
+                            <article class="action-tile feedback-trigger" id="feedbackSubmissionsTile" role="button" tabindex="0">
+                                <div class="tile-icon">✎</div>
+                                <b>Feedback Submissions</b>
+                                <span>Rewrite agent feedback into coaching notes before saving.</span>
+                            </article>
                             <article class="action-tile">
                                 <div class="tile-icon">⌕</div>
                                 <b>Project Links</b>
@@ -364,8 +369,18 @@
                 </div>
 
                 <div class="knowledge-tabs" role="tablist" aria-label="Knowledge sections">
-                    <button class="quick-link-filter-button active" type="button" role="tab" aria-selected="true">Prompts</button>
+                    <button class="quick-link-filter-button active" type="button" role="tab" aria-selected="true">Feedback</button>
+                    <button class="quick-link-filter-button" type="button" role="tab" aria-selected="false">Prompts</button>
                 </div>
+
+                <section class="placeholder-panel feedback-knowledge-panel">
+                    <div class="panel-header">
+                        <span>Feedback Documents</span>
+                    </div>
+                    <div class="feedback-document-list" id="feedbackKnowledgeList">
+                        <div class="empty-state">Saved feedback will appear here.</div>
+                    </div>
+                </section>
 
                 <section class="placeholder-panel prompts-placeholder">
                     <div class="panel-header">
@@ -518,6 +533,74 @@
                 <div class="modal-actions">
                     <button class="chat-option" id="cancelTaskButton" type="button">Cancel</button>
                     <button class="send-button" id="saveTaskButton" type="submit">Save Task</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal-backdrop feedback-backdrop" id="feedbackModal" aria-hidden="true">
+        <section class="task-modal feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle">
+            <div class="modal-header">
+                <div>
+                    <p class="eyebrow">Quality Control</p>
+                    <h2 id="feedbackModalTitle">Feedback Submissions</h2>
+                </div>
+                <button class="icon-button" id="closeFeedbackModal" type="button" aria-label="Close feedback form">×</button>
+            </div>
+
+            <form class="task-form feedback-form" id="feedbackForm">
+                <label>
+                    <span>Submission Type</span>
+                    <select id="feedbackSubmissionType" required>
+                        <option value="General">General</option>
+                        <option value="Coaching">Coaching</option>
+                        <option value="Complaint">Complaint</option>
+                        <option value="Praise">Praise</option>
+                        <option value="Quality">Quality</option>
+                        <option value="Training Need">Training Need</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Agent Email</span>
+                    <input id="feedbackAgentEmail" type="email" placeholder="agent@example.com" required>
+                </label>
+
+                <label class="full-field">
+                    <span>Action Taken</span>
+                    <textarea id="feedbackActionTaken" rows="3" placeholder="What has already happened?"></textarea>
+                </label>
+
+                <label class="full-field">
+                    <span>Action Required</span>
+                    <textarea id="feedbackActionRequired" rows="3" placeholder="What needs to happen next?"></textarea>
+                </label>
+
+                <label class="full-field">
+                    <span>Feedback Notes</span>
+                    <textarea id="feedbackNotes" rows="5" placeholder="Add call observations, evidence, quality points, or praise..."></textarea>
+                </label>
+
+                <section class="feedback-review-panel full-field">
+                    <div class="ai-task-draft-header">
+                        <div>
+                            <span>AI Coaching Feedback</span>
+                            <p>Generate structured coaching content, then review and edit before saving.</p>
+                        </div>
+                        <button class="send-button" id="rewriteFeedbackButton" type="button">Rewrite with AI</button>
+                    </div>
+                    <label>
+                        <span>Reviewed Coaching Content</span>
+                        <textarea id="feedbackAiOutput" rows="12" placeholder="AI coaching feedback will appear here for review."></textarea>
+                    </label>
+                </section>
+
+                <div class="task-form-status" id="feedbackStatus" aria-live="polite"></div>
+
+                <div class="modal-actions">
+                    <button class="chat-option" id="clearFeedbackButton" type="button">Clear</button>
+                    <button class="chat-option" id="cancelFeedbackButton" type="button">Cancel</button>
+                    <button class="send-button" id="saveFeedbackButton" type="submit">Save Feedback</button>
                 </div>
             </form>
         </section>

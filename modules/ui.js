@@ -21,6 +21,7 @@ const TEAM_DASHBOARDS = [
         icon: 'QC',
         actions: [
             { icon: '+', title: 'New Review', text: 'Start a quality control review or follow-up task.' },
+            { icon: '✎', title: 'Feedback Submissions', text: 'Rewrite agent feedback into coaching notes before saving.', tool: 'feedbackSubmissions' },
             { icon: '✓', title: 'Review Queue', text: 'Open the team queue for work awaiting checks.' },
             { icon: '!', title: 'Escalations', text: 'Track items that need quality ownership.' },
             { icon: 'i', title: 'Guidance', text: 'Open QC working notes and standards.' },
@@ -83,6 +84,21 @@ export function collectDom() {
         modelSelect: document.getElementById('modelSelect'),
         connectionStatus: document.getElementById('connectionStatus'),
         newTaskTile: document.getElementById('newTaskTile'),
+        feedbackSubmissionsTile: document.getElementById('feedbackSubmissionsTile'),
+        feedbackModal: document.getElementById('feedbackModal'),
+        feedbackForm: document.getElementById('feedbackForm'),
+        closeFeedbackModalButton: document.getElementById('closeFeedbackModal'),
+        cancelFeedbackButton: document.getElementById('cancelFeedbackButton'),
+        clearFeedbackButton: document.getElementById('clearFeedbackButton'),
+        rewriteFeedbackButton: document.getElementById('rewriteFeedbackButton'),
+        saveFeedbackButton: document.getElementById('saveFeedbackButton'),
+        feedbackSubmissionTypeInput: document.getElementById('feedbackSubmissionType'),
+        feedbackActionTakenInput: document.getElementById('feedbackActionTaken'),
+        feedbackActionRequiredInput: document.getElementById('feedbackActionRequired'),
+        feedbackAgentEmailInput: document.getElementById('feedbackAgentEmail'),
+        feedbackNotesInput: document.getElementById('feedbackNotes'),
+        feedbackAiOutputInput: document.getElementById('feedbackAiOutput'),
+        feedbackStatus: document.getElementById('feedbackStatus'),
         taskModal: document.getElementById('taskModal'),
         closeTaskModalButton: document.getElementById('closeTaskModal'),
         cancelTaskButton: document.getElementById('cancelTaskButton'),
@@ -135,6 +151,7 @@ export function collectDom() {
         closeAgentChatButton: document.getElementById('closeAgentChatButton'),
         chatPanel: document.getElementById('chat-panel'),
         promptLibrary: document.getElementById('promptLibrary'),
+        feedbackKnowledgeList: document.getElementById('feedbackKnowledgeList'),
     };
 }
 
@@ -263,6 +280,11 @@ export function createUi(dom) {
         const toolTile = event.target.closest('[data-team-tool]');
         if (toolTile?.dataset.teamTool === 'aiEmailResponse') {
             openEmailResponseModal();
+            return;
+        }
+
+        if (toolTile?.dataset.teamTool === 'feedbackSubmissions') {
+            window.dispatchEvent(new CustomEvent('open-feedback-submissions'));
         }
     }
 

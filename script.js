@@ -5,6 +5,7 @@ import {
 } from './modules/config.js';
 import { createSessionStore } from './modules/auth.js';
 import { createChatController } from './modules/chat.js';
+import { createFeedbackController } from './modules/feedback.js';
 import { createPocketBaseClient } from './modules/pocketbaseClient.js';
 import { createTaskController } from './modules/tasks.js';
 import { collectDom, createUi } from './modules/ui.js';
@@ -36,6 +37,15 @@ const chat = createChatController({
     ui,
     getSelectedBoardName: () => tasks.getSelectedBoardName(),
     openTaskModalWithDraft: taskDraft => tasks.openTaskModalWithDraft(taskDraft),
+});
+
+const feedback = createFeedbackController({
+    dom,
+    ui,
+    chat,
+    tasks,
+    getCurrentUser: () => currentUser,
+    onSystemMessage: (message, type) => ui.addSystemMessage(message, type),
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,6 +97,15 @@ function bindEvents() {
 
     dom.newTaskTile.addEventListener('click', tasks.openTaskModal);
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);
+    dom.feedbackSubmissionsTile.addEventListener('click', feedback.openFeedbackModal);
+    dom.feedbackSubmissionsTile.addEventListener('keydown', feedback.handleFeedbackTileKeydown);
+    window.addEventListener('open-feedback-submissions', feedback.openFeedbackModal);
+    dom.closeFeedbackModalButton.addEventListener('click', feedback.closeFeedbackModal);
+    dom.cancelFeedbackButton.addEventListener('click', feedback.closeFeedbackModal);
+    dom.clearFeedbackButton.addEventListener('click', feedback.clearFeedbackForm);
+    dom.feedbackModal.addEventListener('click', feedback.handleFeedbackModalBackdropClick);
+    dom.rewriteFeedbackButton.addEventListener('click', feedback.rewriteFeedback);
+    dom.feedbackForm.addEventListener('submit', feedback.saveFeedback);
     dom.closeTaskModalButton.addEventListener('click', tasks.closeTaskModal);
     dom.cancelTaskButton.addEventListener('click', tasks.closeTaskModal);
     dom.closeEmailResponseModalButton.addEventListener('click', ui.closeEmailResponseModal);
@@ -246,6 +265,9 @@ function handleNavClick(event) {
     }
 
     ui.showView(view, tasks.renderKanbanBoard);
+    if (view === 'knowledge') {
+        feedback.renderKnowledgeFeedback();
+    }
 }
 
 function handleQuickLinkFilterClick(event) {
@@ -352,6 +374,11 @@ async function copyTextToClipboard(text) {
 }
 
 function handleGlobalKeydown(event) {
+    if (event.key === 'Escape' && dom.feedbackModal.classList.contains('open')) {
+        feedback.closeFeedbackModal();
+        return;
+    }
+
     if (event.key === 'Escape' && document.body.classList.contains('agent-chat-open')) {
         ui.closeAgentChat();
     }

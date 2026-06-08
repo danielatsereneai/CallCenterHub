@@ -422,6 +422,35 @@ export function createTaskController({
         }
     }
 
+    async function createFeedbackTask(taskData) {
+        const currentUser = getCurrentUser();
+        const assignedValue = taskData.assigned || (currentUser ? getUserAssignmentValue(currentUser) : '');
+        const enteredToken = dom.taskPanelTokenInput?.value.trim() || '';
+        const token = enteredToken || session.hydratePocketBaseToken() || getCurrentUserToken() || '';
+        session.persistPocketBaseToken(enteredToken);
+        hydratePocketBaseTokenInputs();
+
+        const record = await createPocketBaseTaskWithFallback({
+            due_date: '',
+            task_name: taskData.task_name,
+            task_description: taskData.task_description,
+            assigned: assignedValue,
+            board_name: taskData.board_name || 'Feedback',
+            task_status: normalizeTaskStatus(taskData.task_status || 'new'),
+            Json: taskData.Json || {},
+            Notes: taskData.Notes || '',
+            task_id: taskData.task_id || Date.now(),
+            attatchemnt: null,
+            token,
+        });
+
+        savedTasks = [record, ...savedTasks];
+        renderSavedTasks();
+        populateBoardSelect();
+        renderKanbanBoard();
+        return record;
+    }
+
     function buildTaskWithComment(task, commentText) {
         const json = parseTaskJson(task.Json);
         const comments = getTaskComments(task);
@@ -830,6 +859,10 @@ export function createTaskController({
         return dom.boardSelect.value && dom.boardSelect.value !== 'all' ? dom.boardSelect.value : '';
     }
 
+    function getSavedTasks() {
+        return [...savedTasks];
+    }
+
     function getTaskMetaLine(task) {
         const boardName = getTaskBoardName(task);
         const assignedLabel = getTaskAssignedLabel(task);
@@ -886,8 +919,10 @@ export function createTaskController({
         handleKanbanDrop,
         handleKanbanDragEnd,
         saveTask,
+        createFeedbackTask,
         addTaskComment,
         renderKanbanBoard,
         getSelectedBoardName,
+        getSavedTasks,
     };
 }

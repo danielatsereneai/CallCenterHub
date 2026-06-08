@@ -373,6 +373,36 @@ export function createChatController({
         }
     }
 
+    async function createFeedbackCoachingDraft(feedbackFields) {
+        const fields = normalizeFeedbackFields(feedbackFields);
+
+        if (!isConnected) {
+            throw new Error('Not connected to Ollama. Please check your connection.');
+        }
+
+        if (isWaitingForResponse) {
+            throw new Error('Still waiting for a response. Please wait.');
+        }
+
+        if (!fields.agentEmail || !fields.feedbackNotes) {
+            throw new Error('Add the agent email and feedback notes before rewriting.');
+        }
+
+        isWaitingForResponse = true;
+        updateSendButtonState();
+
+        try {
+            const content = await queryOllama(buildSingleUserMessage(buildFeedbackCoachingPrompt(fields)));
+            return {
+                content,
+                model: selectedModel,
+            };
+        } finally {
+            isWaitingForResponse = false;
+            updateSendButtonState();
+        }
+    }
+
     function getTaskFormattingContext(turnIndex) {
         const assistantTurn = chatTurns[turnIndex] || {};
         const userTurn = findPreviousUserTurn(turnIndex);
@@ -418,6 +448,41 @@ ${customerResponse}
 
 My summary findings / customer response context:
 ${summaryFindings}`;
+    }
+
+    function normalizeFeedbackFields(feedbackFields) {
+        return {
+            submissionType: String(feedbackFields?.submissionType || 'General').trim(),
+            actionTaken: String(feedbackFields?.actionTaken || '').trim(),
+            actionRequired: String(feedbackFields?.actionRequired || '').trim(),
+            agentEmail: String(feedbackFields?.agentEmail || '').trim(),
+            feedbackNotes: String(feedbackFields?.feedbackNotes || '').trim(),
+        };
+    }
+
+    function buildFeedbackCoachingPrompt(fields) {
+        return `You are a Quality Control coaching assistant for Life@Perch.
+
+Rewrite the submitted feedback into detailed, practical coaching-style feedback for an agent.
+
+Rules:
+- Use a clear, professional UK business tone.
+- Do not invent facts, promises, dates, call content, policy outcomes, or evidence.
+- Keep the feedback specific to the supplied notes.
+- If the feedback is positive, preserve the praise and identify repeatable behaviours.
+- If action is needed, make the coaching direct, fair, and constructive.
+- Return only the coaching document text. Do not wrap it in markdown fences.
+
+Use these section headings:
+Summary
+Observed Issue or Positive Behaviour
+Impact
+Coaching Guidance
+Action Required
+Suggested Follow-up
+
+Feedback submission:
+${JSON.stringify(fields, null, 2)}`;
     }
 
     function parseTaskFormatterResponse(text) {
@@ -593,5 +658,6 @@ ${summaryFindings}`;
         handleChatActionClick,
         createTaskDraftFromInput,
         createEmailResponseDraft,
+        createFeedbackCoachingDraft,
     };
 }

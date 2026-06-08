@@ -42,6 +42,39 @@ export function isAdminUser(user) {
     return getUserType(user).toLowerCase() === 'admin';
 }
 
+export function getUserOrgId(user) {
+    if (!user) return '';
+
+    const value = user.org_id
+        || user.orgId
+        || user.Org_ID
+        || user.OrgId
+        || user['Org ID']
+        || user.organisation
+        || user.organization
+        || user.org
+        || '';
+
+    return String(value).trim();
+}
+
+export function getUserBoardName(user) {
+    return normalizeOrgBoardName(getUserOrgId(user));
+}
+
+export function normalizeOrgBoardName(value) {
+    const normalized = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const boardNames = {
+        perch: 'PerchGroup',
+        perchgroup: 'PerchGroup',
+        aci: 'ACI',
+        tml: 'TML',
+        connect: 'Connect',
+        verify: 'Verify',
+    };
+    return boardNames[normalized] || String(value || '').trim();
+}
+
 export function formatBoolean(value) {
     if (value === true) return 'Yes';
     if (value === false) return 'No';

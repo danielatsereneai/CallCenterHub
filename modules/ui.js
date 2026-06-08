@@ -10,6 +10,8 @@ import {
     formatDateTime,
     getUserDisplayName,
     getUserInitials,
+    getUserBoardName,
+    getUserOrgId,
     getUserType,
 } from './utils.js';
 
@@ -425,6 +427,8 @@ export function createUi(dom) {
             ['Name', user?.name || 'Not set'],
             ['Email', email],
             ['User Type', getUserType(user) || 'User'],
+            ['Org ID', getUserOrgId(user) || 'Not set'],
+            ['Task Board Access', getUserBoardName(user) || 'Not set'],
             ['User ID', user?.id || 'Not available'],
             ['Verified', formatBoolean(user?.verified)],
             ['Created', formatDateTime(user?.created)],

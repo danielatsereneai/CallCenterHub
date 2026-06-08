@@ -3,8 +3,11 @@ import {
     escapeHtml,
     formatDateTime,
     getTaskStatusLabel,
+    getUserBoardName,
     getUserDisplayName,
+    isAdminUser,
     normalizeAssignmentValue,
+    normalizeOrgBoardName,
     normalizeTaskStatus,
     parseTaskJson,
     toDateTimeLocalValue,
@@ -98,7 +101,8 @@ export function createTaskController({
             renderKanbanBoard();
 
             if (!options.silent) {
-                onSystemMessage(`Loaded ${savedTasks.length} task${savedTasks.length === 1 ? '' : 's'} from PocketBase.`);
+                const visibleTaskCount = getVisibleTasks().length;
+                onSystemMessage(`Loaded ${visibleTaskCount} visible task${visibleTaskCount === 1 ? '' : 's'} from PocketBase.`);
             }
         } catch (error) {
             console.error('PocketBase task load error:', error);
@@ -551,7 +555,10 @@ export function createTaskController({
         const jsonValue = { ...taskJsonDraft };
         const taskStatus = normalizeTaskStatus(document.getElementById('taskStatus').value);
         jsonValue.status = taskStatus;
-        const boardName = document.getElementById('taskBoardName').value.trim();
+        const enteredBoardName = document.getElementById('taskBoardName').value.trim();
+        const boardName = isBoardAllowedForCurrentUser(enteredBoardName)
+            ? enteredBoardName
+            : (getAllowedDefaultBoardNames()[0] || '');
         const assignedValue = document.getElementById('taskAssigned').value.trim();
         jsonValue.board_name = boardName;
         jsonValue.assigned = assignedValue;
@@ -711,7 +718,7 @@ export function createTaskController({
 
         return savedTasks
             .map((task, index) => ({ task, index }))
-            .filter(({ task }) => isTaskAssignedToCurrentUser(task));
+            .filter(({ task }) => isTaskVisibleToCurrentUser(task) && isTaskAssignedToCurrentUser(task));
     }
 
     function isTaskAssignedToCurrentUser(task) {
@@ -791,8 +798,9 @@ export function createTaskController({
 
     function populateBoardSelect() {
         const currentValue = dom.boardSelect.value || 'all';
-        const defaultBoardNames = LIFE_AT_PERCH_AREAS.map(area => area.label);
-        const savedBoardNames = [...new Set(savedTasks.map(getTaskBoardName).filter(Boolean))]
+        const defaultBoardNames = getAllowedDefaultBoardNames();
+        const visibleTasks = getVisibleTasks();
+        const savedBoardNames = [...new Set(visibleTasks.map(getTaskBoardName).filter(Boolean))]
             .filter(board => !defaultBoardNames.includes(board))
             .sort((a, b) => a.localeCompare(b));
         const boardNames = [...defaultBoardNames, ...savedBoardNames];
@@ -809,12 +817,14 @@ export function createTaskController({
         if (!boardSelect) return;
 
         const normalizedSelectedValue = String(selectedValue || '').trim();
-        const defaultBoardNames = LIFE_AT_PERCH_AREAS.map(area => area.label);
-        const savedBoardNames = [...new Set(savedTasks.map(getTaskBoardName).filter(Boolean))]
+        const defaultBoardNames = getAllowedDefaultBoardNames();
+        const visibleTasks = getVisibleTasks();
+        const savedBoardNames = [...new Set(visibleTasks.map(getTaskBoardName).filter(Boolean))]
             .filter(board => !defaultBoardNames.includes(board))
             .sort((a, b) => a.localeCompare(b));
         const boardNames = [...defaultBoardNames, ...savedBoardNames];
-        const optionNames = normalizedSelectedValue && !boardNames.includes(normalizedSelectedValue)
+        const canUseSelectedValue = normalizedSelectedValue && isBoardAllowedForCurrentUser(normalizedSelectedValue);
+        const optionNames = canUseSelectedValue && !boardNames.includes(normalizedSelectedValue)
             ? [normalizedSelectedValue, ...boardNames]
             : boardNames;
 
@@ -822,14 +832,15 @@ export function createTaskController({
             '<option value="">No board</option>',
             ...optionNames.map(board => `<option value="${escapeHtml(board)}">${escapeHtml(board)}</option>`),
         ].join('');
-        boardSelect.value = optionNames.includes(normalizedSelectedValue) ? normalizedSelectedValue : '';
+        boardSelect.value = optionNames.includes(normalizedSelectedValue) ? normalizedSelectedValue : (optionNames[0] || '');
     }
 
     function renderKanbanBoard() {
         const selectedBoard = dom.boardSelect.value || 'all';
+        const visibleTasks = getVisibleTasks();
         const filteredTasks = selectedBoard === 'all'
-            ? savedTasks
-            : savedTasks.filter(task => getTaskBoardName(task) === selectedBoard);
+            ? visibleTasks
+            : visibleTasks.filter(task => getTaskBoardName(task) === selectedBoard);
 
         TASK_STATUSES.forEach(status => {
             const column = dom.kanbanBoard.querySelector(`[data-status="${status.id}"]`);
@@ -860,7 +871,35 @@ export function createTaskController({
     }
 
     function getSavedTasks() {
-        return [...savedTasks];
+        return getVisibleTasks();
+    }
+
+    function getVisibleTasks() {
+        return savedTasks.filter(isTaskVisibleToCurrentUser);
+    }
+
+    function isTaskVisibleToCurrentUser(task) {
+        const boardName = getTaskBoardName(task);
+        return isBoardAllowedForCurrentUser(boardName);
+    }
+
+    function isBoardAllowedForCurrentUser(boardName) {
+        const currentUser = getCurrentUser();
+        if (!currentUser) return false;
+        if (isAdminUser(currentUser)) return true;
+
+        const userBoardName = getUserBoardName(currentUser);
+        return Boolean(userBoardName) && normalizeOrgBoardName(boardName) === userBoardName;
+    }
+
+    function getAllowedDefaultBoardNames() {
+        const currentUser = getCurrentUser();
+        if (isAdminUser(currentUser)) {
+            return LIFE_AT_PERCH_AREAS.map(area => area.label);
+        }
+
+        const userBoardName = getUserBoardName(currentUser);
+        return userBoardName ? [userBoardName] : [];
     }
 
     function getTaskMetaLine(task) {

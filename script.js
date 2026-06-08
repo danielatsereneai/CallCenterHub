@@ -9,7 +9,7 @@ import { createFeedbackController } from './modules/feedback.js';
 import { createPocketBaseClient } from './modules/pocketbaseClient.js';
 import { createTaskController } from './modules/tasks.js';
 import { collectDom, createUi } from './modules/ui.js';
-import { getUserDisplayName } from './modules/utils.js';
+import { getUserDisplayName, isAdminUser } from './modules/utils.js';
 
 const dom = collectDom();
 const ui = createUi(dom);
@@ -50,13 +50,13 @@ const feedback = createFeedbackController({
 
 document.addEventListener('DOMContentLoaded', () => {
     chat.populateModelSelect();
-    ui.renderPromptLibrary();
+    hydrateAuthSession();
+    syncPromptEditPermission();
     ui.updateDateTimeDisplay();
     setInterval(ui.updateDateTimeDisplay, 30000);
     tasks.hydratePocketBaseTokenInputs();
     ui.renderOperationsTeams();
     ui.renderPinnedTeamNav();
-    hydrateAuthSession();
 
     bindEvents();
 
@@ -168,15 +168,18 @@ function persistAuthSession(authData) {
     currentUser = authData.record;
     currentUserToken = authData.token;
     session.persistAuthSession(authData);
+    syncPromptEditPermission();
 }
 
 function clearAuthSession() {
     currentUser = null;
     currentUserToken = '';
     session.clearAuthSession();
+    syncPromptEditPermission();
 }
 
 async function startAuthenticatedApp() {
+    await refreshCurrentUserProfile({ silent: true });
     ui.showAppScreen(currentUser);
     tasks.populateAssignedSelect();
     chat.checkOllamaConnection();
@@ -222,6 +225,11 @@ async function openSettingsModal() {
 
     ui.renderUserSettings(currentUser);
     ui.openSettingsModal();
+    await refreshCurrentUserProfile({ renderSettings: true });
+}
+
+async function refreshCurrentUserProfile({ renderSettings = false, silent = false } = {}) {
+    if (!currentUser?.id || !currentUserToken) return;
 
     try {
         const profile = await pocketbase.fetchCurrentUserProfile(currentUser.id, currentUserToken);
@@ -239,12 +247,23 @@ async function openSettingsModal() {
                 record: currentUser,
             });
             ui.updateCurrentUserDisplay(currentUser);
-            ui.renderUserSettings(currentUser);
+            if (renderSettings) {
+                ui.renderUserSettings(currentUser);
+            }
         }
     } catch (error) {
         console.error('PocketBase profile load error:', error);
-        ui.renderUserSettings(currentUser, `Profile refresh failed: ${error.message}`);
+        if (renderSettings) {
+            ui.renderUserSettings(currentUser, `Profile refresh failed: ${error.message}`);
+        }
+        if (!silent) {
+            ui.addSystemMessage(`Profile refresh failed: ${error.message}`, 'error');
+        }
     }
+}
+
+function syncPromptEditPermission() {
+    ui.setPromptEditPermission(isAdminUser(currentUser));
 }
 
 function handleSettingsModalBackdropClick(event) {

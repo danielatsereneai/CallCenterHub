@@ -10,6 +10,7 @@ import {
     formatDateTime,
     getUserDisplayName,
     getUserInitials,
+    getUserType,
 } from './utils.js';
 
 const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
@@ -157,6 +158,7 @@ export function collectDom() {
 export function createUi(dom) {
     let announcementTimer = null;
     let activeTeamId = '';
+    let canEditPrompts = false;
 
     function showAuthScreen() {
         document.body.classList.remove('is-authenticated');
@@ -422,6 +424,7 @@ export function createUi(dom) {
         const fields = [
             ['Name', user?.name || 'Not set'],
             ['Email', email],
+            ['User Type', getUserType(user) || 'User'],
             ['User ID', user?.id || 'Not available'],
             ['Verified', formatBoolean(user?.verified)],
             ['Created', formatDateTime(user?.created)],
@@ -528,14 +531,14 @@ export function createUi(dom) {
                 <div class="prompt-card-actions">
                     <span class="chip">${promptItem.isCustomized ? 'Custom' : 'Default'}</span>
                     <button class="chat-option prompt-copy-button" type="button" data-prompt-copy>Copy</button>
-                    <button class="chat-option prompt-save-button" type="button" data-prompt-save>Save</button>
-                    <button class="chat-option prompt-reset-button" type="button" data-prompt-reset>Reset</button>
+                    ${canEditPrompts ? '<button class="chat-option prompt-save-button" type="button" data-prompt-save>Save</button>' : ''}
+                    ${canEditPrompts ? '<button class="chat-option prompt-reset-button" type="button" data-prompt-reset>Reset</button>' : ''}
                     <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="false">Expand</button>
                 </div>
             </div>
             <div class="prompt-card-body">
-                <textarea class="prompt-card-editor" rows="18" spellcheck="false">${escapeHtml(promptItem.prompt)}</textarea>
-                <div class="prompt-card-status" aria-live="polite"></div>
+                <textarea class="prompt-card-editor" rows="18" spellcheck="false"${canEditPrompts ? '' : ' readonly'}>${escapeHtml(promptItem.prompt)}</textarea>
+                <div class="prompt-card-status" aria-live="polite">${canEditPrompts ? '' : 'Prompt editing is available to Admin users only.'}</div>
             </div>
         </article>
     `).join('');
@@ -578,6 +581,15 @@ export function createUi(dom) {
         const editor = promptCard?.querySelector('.prompt-card-editor');
         const status = promptCard?.querySelector('.prompt-card-status');
 
+        if (!canEditPrompts) {
+            if (status) {
+                status.textContent = 'Prompt editing is available to Admin users only.';
+                status.classList.remove('success');
+                status.classList.add('error');
+            }
+            return;
+        }
+
         try {
             const savedPrompt = savePromptText(promptId, editor?.value || '');
             if (status) {
@@ -600,6 +612,16 @@ export function createUi(dom) {
         const promptId = promptCard?.dataset.promptId || '';
         const editor = promptCard?.querySelector('.prompt-card-editor');
         const status = promptCard?.querySelector('.prompt-card-status');
+
+        if (!canEditPrompts) {
+            if (status) {
+                status.textContent = 'Prompt editing is available to Admin users only.';
+                status.classList.remove('success');
+                status.classList.add('error');
+            }
+            return;
+        }
+
         const resetPrompt = resetPromptText(promptId);
 
         if (editor) {
@@ -618,6 +640,11 @@ export function createUi(dom) {
         if (badge) {
             badge.textContent = isCustomized ? 'Custom' : 'Default';
         }
+    }
+
+    function setPromptEditPermission(canEdit) {
+        canEditPrompts = Boolean(canEdit);
+        renderPromptLibrary();
     }
 
     async function copyPromptCardText(copyButton) {
@@ -764,6 +791,7 @@ export function createUi(dom) {
         updateConnectionStatus,
         showKnowledgeSection,
         handleKnowledgeTabsClick,
+        setPromptEditPermission,
         renderPromptLibrary,
         handlePromptLibraryClick,
         addUserMessage,

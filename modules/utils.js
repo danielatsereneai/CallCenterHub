@@ -23,6 +23,25 @@ export function getUserInitials(name) {
     return initials.toUpperCase() || 'U';
 }
 
+export function getUserType(user) {
+    if (!user) return '';
+
+    const value = user['User Type']
+        || user.User_Type
+        || user.user_type
+        || user.userType
+        || user.UserType
+        || user.role
+        || user.type
+        || '';
+
+    return String(value).trim();
+}
+
+export function isAdminUser(user) {
+    return getUserType(user).toLowerCase() === 'admin';
+}
+
 export function formatBoolean(value) {
     if (value === true) return 'Yes';
     if (value === false) return 'No';

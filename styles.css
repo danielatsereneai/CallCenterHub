@@ -1402,16 +1402,58 @@ body.is-authenticated .auth-screen {
   border-radius: 11px;
 }
 
-.prompt-card pre {
-  max-height: 460px;
-  overflow: auto;
-  margin: 0;
+.prompt-save-button,
+.prompt-reset-button {
+  min-height: 36px;
+  padding: 9px 12px;
+  border-radius: 11px;
+}
+
+.prompt-save-button {
+  color: #ffffff;
+  background: var(--green);
+}
+
+.prompt-card-body {
+  display: grid;
+  gap: 10px;
   padding: 16px;
-  color: var(--text);
   background: #f7f8fb;
+}
+
+.prompt-card-editor {
+  width: 100%;
+  max-height: 460px;
+  min-height: 280px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  background: #ffffff;
+  font: inherit;
   font-size: 12px;
   line-height: 1.55;
-  white-space: pre-wrap;
+  outline: none;
+  padding: 14px;
+}
+
+.prompt-card-editor:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(31, 172, 120, 0.1);
+}
+
+.prompt-card-status {
+  min-height: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.prompt-card-status.success {
+  color: var(--green);
+}
+
+.prompt-card-status.error {
+  color: var(--red);
 }
 
 .prompt-card.is-minimized .prompt-card-purpose,

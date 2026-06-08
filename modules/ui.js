@@ -1,9 +1,9 @@
+import { DEFAULT_QUICK_LINK_FILTER } from './config.js';
 import {
-    DEFAULT_QUICK_LINK_FILTER,
-    EMAIL_RESPONSE_PROMPT,
-    FEEDBACK_COACHING_PROMPT,
-    TASK_API_REQUEST_PROMPT,
-} from './config.js';
+    getPromptLibraryItems,
+    resetPromptText,
+    savePromptText,
+} from './prompts.js';
 import {
     escapeHtml,
     formatBoolean,
@@ -13,11 +13,6 @@ import {
 } from './utils.js';
 
 const PINNED_TEAM_STORAGE_KEY = 'lifeAtPerchPinnedTeamDashboards';
-const PROMPT_LIBRARY_ITEMS = [
-    TASK_API_REQUEST_PROMPT,
-    EMAIL_RESPONSE_PROMPT,
-    FEEDBACK_COACHING_PROMPT,
-];
 const TEAM_DASHBOARDS = [
     {
         id: 'qc',
@@ -523,20 +518,25 @@ export function createUi(dom) {
     function renderPromptLibrary() {
         if (!dom.promptLibrary) return;
 
-        dom.promptLibrary.innerHTML = PROMPT_LIBRARY_ITEMS.map(promptItem => `
-        <article class="prompt-card is-minimized">
+        dom.promptLibrary.innerHTML = getPromptLibraryItems().map(promptItem => `
+        <article class="prompt-card is-minimized" data-prompt-id="${escapeHtml(promptItem.id)}">
             <div class="prompt-card-header">
                 <div>
                     <h3>${escapeHtml(promptItem.title)}</h3>
                     <p class="prompt-card-purpose">${escapeHtml(promptItem.purpose)}</p>
                 </div>
                 <div class="prompt-card-actions">
-                    <span class="chip">Static</span>
+                    <span class="chip">${promptItem.isCustomized ? 'Custom' : 'Default'}</span>
                     <button class="chat-option prompt-copy-button" type="button" data-prompt-copy>Copy</button>
+                    <button class="chat-option prompt-save-button" type="button" data-prompt-save>Save</button>
+                    <button class="chat-option prompt-reset-button" type="button" data-prompt-reset>Reset</button>
                     <button class="chat-option prompt-toggle-button" type="button" data-prompt-toggle aria-expanded="false">Expand</button>
                 </div>
             </div>
-            <pre class="prompt-card-body"><code>${escapeHtml(promptItem.prompt)}</code></pre>
+            <div class="prompt-card-body">
+                <textarea class="prompt-card-editor" rows="18" spellcheck="false">${escapeHtml(promptItem.prompt)}</textarea>
+                <div class="prompt-card-status" aria-live="polite"></div>
+            </div>
         </article>
     `).join('');
     }
@@ -545,6 +545,18 @@ export function createUi(dom) {
         const copyButton = event.target.closest('[data-prompt-copy]');
         if (copyButton) {
             await copyPromptCardText(copyButton);
+            return;
+        }
+
+        const saveButton = event.target.closest('[data-prompt-save]');
+        if (saveButton) {
+            savePromptCardText(saveButton);
+            return;
+        }
+
+        const resetButton = event.target.closest('[data-prompt-reset]');
+        if (resetButton) {
+            resetPromptCardText(resetButton);
             return;
         }
 
@@ -560,9 +572,57 @@ export function createUi(dom) {
         toggleButton.setAttribute('aria-expanded', String(!isMinimized));
     }
 
+    function savePromptCardText(saveButton) {
+        const promptCard = saveButton.closest('.prompt-card');
+        const promptId = promptCard?.dataset.promptId || '';
+        const editor = promptCard?.querySelector('.prompt-card-editor');
+        const status = promptCard?.querySelector('.prompt-card-status');
+
+        try {
+            const savedPrompt = savePromptText(promptId, editor?.value || '');
+            if (status) {
+                status.textContent = 'Prompt saved. AI flows will use this version.';
+                status.classList.remove('error');
+                status.classList.add('success');
+            }
+            updatePromptCardBadge(promptCard, savedPrompt?.isCustomized);
+        } catch (error) {
+            if (status) {
+                status.textContent = error.message;
+                status.classList.remove('success');
+                status.classList.add('error');
+            }
+        }
+    }
+
+    function resetPromptCardText(resetButton) {
+        const promptCard = resetButton.closest('.prompt-card');
+        const promptId = promptCard?.dataset.promptId || '';
+        const editor = promptCard?.querySelector('.prompt-card-editor');
+        const status = promptCard?.querySelector('.prompt-card-status');
+        const resetPrompt = resetPromptText(promptId);
+
+        if (editor) {
+            editor.value = resetPrompt?.prompt || '';
+        }
+        if (status) {
+            status.textContent = 'Prompt reset to the default version.';
+            status.classList.remove('error');
+            status.classList.add('success');
+        }
+        updatePromptCardBadge(promptCard, resetPrompt?.isCustomized);
+    }
+
+    function updatePromptCardBadge(promptCard, isCustomized) {
+        const badge = promptCard?.querySelector('.chip');
+        if (badge) {
+            badge.textContent = isCustomized ? 'Custom' : 'Default';
+        }
+    }
+
     async function copyPromptCardText(copyButton) {
         const promptCard = copyButton.closest('.prompt-card');
-        const promptText = promptCard?.querySelector('code')?.textContent?.trim() || '';
+        const promptText = promptCard?.querySelector('.prompt-card-editor')?.value?.trim() || '';
         if (!promptText) return;
 
         try {

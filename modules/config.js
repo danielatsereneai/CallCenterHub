@@ -9,6 +9,12 @@ export const POCKETBASE_AUTH_STORAGE_KEY = 'baseStartAuth';
 
 export const DEFAULT_QUICK_LINK_FILTER = 'perchgroup';
 
+export const PROMPT_IDS = {
+    taskApiRequest: 'task-api-request',
+    emailResponse: 'email-response',
+    feedbackCoaching: 'feedback-coaching',
+};
+
 export const LIFE_AT_PERCH_AREAS = [
     { id: 'perchgroup', label: 'PerchGroup', websiteUrl: 'https://www.perchgroup.co.uk/' },
     { id: 'aci', label: 'ACI', websiteUrl: 'https://www.aciuk.co.uk/' },
@@ -18,6 +24,7 @@ export const LIFE_AT_PERCH_AREAS = [
 ];
 
 export const TASK_API_REQUEST_PROMPT = {
+    id: PROMPT_IDS.taskApiRequest,
     title: 'Create Task API Request',
     purpose: 'Transform user-provided information into a categorised Life@Perch task creation request.',
     prompt: `You are the Life@Perch task API formatter.
@@ -77,6 +84,7 @@ Rules:
 };
 
 export const EMAIL_RESPONSE_PROMPT = {
+    id: PROMPT_IDS.emailResponse,
     title: 'AI Email Response',
     purpose: 'Draft a customer email response from the customer email and internal summary findings.',
     prompt: `You are an AI writing assistant for the Correspondence Team.
@@ -92,6 +100,7 @@ Rules:
 };
 
 export const FEEDBACK_COACHING_PROMPT = {
+    id: PROMPT_IDS.feedbackCoaching,
     title: 'Feedback Coaching Rewrite',
     purpose: 'Rewrite raw feedback submissions into structured, coaching-style feedback for agents.',
     prompt: `You are a Quality Control coaching assistant for Life@Perch.

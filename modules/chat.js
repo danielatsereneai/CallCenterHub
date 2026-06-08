@@ -1,14 +1,13 @@
 import {
     AVAILABLE_MODELS,
     DEFAULT_OLLAMA_MODEL,
-    EMAIL_RESPONSE_PROMPT,
-    FEEDBACK_COACHING_PROMPT,
     LIFE_AT_PERCH_AREAS,
     OLLAMA_BASE_URL,
     POCKETBASE_COLLECTION,
-    TASK_API_REQUEST_PROMPT,
+    PROMPT_IDS,
     TASK_STATUSES,
 } from './config.js';
+import { getPromptText } from './prompts.js';
 import { createTaskNameFromText, normalizeTaskStatus } from './utils.js';
 
 const TASK_API_REQUEST_URL = `/api/collections/${POCKETBASE_COLLECTION}/records`;
@@ -435,14 +434,14 @@ export function createChatController({
             agent_response: context.assistantMessage,
         };
 
-        return `${TASK_API_REQUEST_PROMPT.prompt}
+        return `${getPromptText(PROMPT_IDS.taskApiRequest)}
 
 Format this task request:
 ${JSON.stringify(promptInput, null, 2)}`;
     }
 
     function buildEmailResponsePrompt({ customerResponse, summaryFindings }) {
-        return `${EMAIL_RESPONSE_PROMPT.prompt}
+        return `${getPromptText(PROMPT_IDS.emailResponse)}
 
 Customer response:
 ${customerResponse}
@@ -462,7 +461,7 @@ ${summaryFindings}`;
     }
 
     function buildFeedbackCoachingPrompt(fields) {
-        return `${FEEDBACK_COACHING_PROMPT.prompt}
+        return `${getPromptText(PROMPT_IDS.feedbackCoaching)}
 
 Feedback submission:
 ${JSON.stringify(fields, null, 2)}`;

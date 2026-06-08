@@ -1878,6 +1878,10 @@ body.is-authenticated .auth-screen {
   gap: 14px;
 }
 
+.ai-task-draft[hidden] {
+  display: none;
+}
+
 .ai-task-draft-header {
   grid-column: 1 / -1;
   display: flex;

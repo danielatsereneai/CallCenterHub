@@ -871,6 +871,7 @@ export function createTaskController({
     function setTaskFormMode(mode) {
         const isViewing = mode === 'view';
         const isEditing = mode === 'edit';
+        const isCreating = mode === 'create';
         const showTaskChat = mode !== 'create';
         dom.taskModal.dataset.mode = mode;
         dom.taskModalTitle.textContent = isViewing ? 'View Task' : isEditing ? 'Edit Task' : 'New Task';
@@ -883,6 +884,10 @@ export function createTaskController({
         const taskChatPanel = document.getElementById('taskCommentsSection');
         if (taskChatPanel) {
             taskChatPanel.hidden = !showTaskChat;
+        }
+        const aiTaskDraftPanel = dom.taskForm.querySelector('.ai-task-draft');
+        if (aiTaskDraftPanel) {
+            aiTaskDraftPanel.hidden = !isCreating;
         }
         dom.taskForm.querySelectorAll('input, textarea, select').forEach(field => {
             if (field.id === 'taskAttachment') {

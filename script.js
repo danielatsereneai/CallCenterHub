@@ -21,8 +21,6 @@ const pocketbase = createPocketBaseClient();
 
 let currentUser = null;
 let currentUserToken = '';
-let managedUsers = [];
-let selectedManagedUserId = '';
 
 const tasks = createTaskController({
     dom,
@@ -107,8 +105,6 @@ function bindEvents() {
     dom.newTaskTile.addEventListener('keydown', tasks.handleTaskTileKeydown);
     dom.feedbackSubmissionsTile.addEventListener('click', feedback.openFeedbackModal);
     dom.feedbackSubmissionsTile.addEventListener('keydown', feedback.handleFeedbackTileKeydown);
-    dom.userManagementTile.addEventListener('click', openUserManagementPage);
-    dom.userManagementTile.addEventListener('keydown', handleUserManagementTileKeydown);
     window.addEventListener('open-feedback-submissions', feedback.openFeedbackModal);
     dom.closeFeedbackModalButton.addEventListener('click', feedback.closeFeedbackModal);
     dom.cancelFeedbackButton.addEventListener('click', feedback.closeFeedbackModal);
@@ -150,10 +146,6 @@ function bindEvents() {
     dom.kanbanBoard.addEventListener('dragend', tasks.handleKanbanDragEnd);
 
     dom.mainNavList.addEventListener('click', handleNavClick);
-    dom.refreshUsersButton.addEventListener('click', loadManagedUsers);
-    dom.userManagementList.addEventListener('click', handleManagedUserListClick);
-    dom.userManagementForm.addEventListener('submit', saveManagedUser);
-    dom.clearManagedUserButton.addEventListener('click', clearManagedUserSelection);
     dom.quickLinkFilterButtons.forEach(button => {
         button.addEventListener('click', handleQuickLinkFilterClick);
     });
@@ -177,7 +169,6 @@ function persistAuthSession(authData) {
     currentUserToken = authData.token;
     session.persistAuthSession(authData);
     syncPromptEditPermission();
-    ui.setAdminAccess(currentUser);
 }
 
 function clearAuthSession() {
@@ -185,13 +176,11 @@ function clearAuthSession() {
     currentUserToken = '';
     session.clearAuthSession();
     syncPromptEditPermission();
-    ui.setAdminAccess(null);
 }
 
 async function startAuthenticatedApp() {
     await refreshCurrentUserProfile({ silent: true });
     ui.showAppScreen(currentUser);
-    ui.setAdminAccess(currentUser);
     tasks.populateAssignedSelect();
     chat.checkOllamaConnection();
     await tasks.refreshPocketBaseData();
@@ -277,143 +266,6 @@ function syncPromptEditPermission() {
     ui.setPromptEditPermission(isAdminUser(currentUser));
 }
 
-async function openUserManagementPage() {
-    if (!isAdminUser(currentUser)) {
-        ui.addSystemMessage('Systems is available to Admin users only.', 'error');
-        return;
-    }
-
-    ui.showView('systems');
-    await loadManagedUsers();
-}
-
-function handleUserManagementTileKeydown(event) {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
-    openUserManagementPage();
-}
-
-async function loadManagedUsers() {
-    if (!isAdminUser(currentUser)) {
-        ui.setUserManagementStatus('User management is available to Admin users only.', 'error');
-        return;
-    }
-
-    ui.setUserManagementStatus('Loading users...');
-    dom.refreshUsersButton.disabled = true;
-
-    try {
-        const result = await pocketbase.loadAvailableUsers(currentUserToken);
-        managedUsers = result.items || [];
-        if (selectedManagedUserId && !managedUsers.some(user => user.id === selectedManagedUserId)) {
-            selectedManagedUserId = '';
-        }
-        ui.renderUserManagementList(managedUsers, selectedManagedUserId);
-        if (selectedManagedUserId) {
-            ui.renderManagedUserForm(managedUsers.find(user => user.id === selectedManagedUserId));
-        }
-        ui.setUserManagementStatus(`${managedUsers.length} user${managedUsers.length === 1 ? '' : 's'} loaded.`, 'success');
-    } catch (error) {
-        console.error('PocketBase users load error:', error);
-        ui.renderUserManagementList([], '');
-        ui.setUserManagementStatus(`User load failed: ${error.message}`, 'error');
-    } finally {
-        dom.refreshUsersButton.disabled = false;
-    }
-}
-
-function handleManagedUserListClick(event) {
-    const row = event.target.closest('[data-managed-user-id]');
-    if (!row) return;
-
-    selectedManagedUserId = row.dataset.managedUserId;
-    const selectedUser = managedUsers.find(user => user.id === selectedManagedUserId);
-    ui.renderUserManagementList(managedUsers, selectedManagedUserId);
-    ui.renderManagedUserForm(selectedUser);
-}
-
-function clearManagedUserSelection() {
-    selectedManagedUserId = '';
-    ui.renderUserManagementList(managedUsers, selectedManagedUserId);
-    ui.clearManagedUserForm();
-}
-
-async function saveManagedUser(event) {
-    event.preventDefault();
-
-    if (!isAdminUser(currentUser)) {
-        ui.setUserManagementStatus('User management is available to Admin users only.', 'error');
-        return;
-    }
-
-    const recordId = dom.managedUserIdInput.value;
-    if (!recordId) {
-        ui.setUserManagementStatus('Select a user before saving.', 'error');
-        return;
-    }
-
-    let extraFields = {};
-    const extraFieldsText = dom.managedUserExtraFieldsInput.value.trim();
-    if (extraFieldsText) {
-        try {
-            extraFields = JSON.parse(extraFieldsText);
-            if (!extraFields || Array.isArray(extraFields) || typeof extraFields !== 'object') {
-                throw new Error('Additional Fields JSON must be an object.');
-            }
-        } catch (error) {
-            ui.setUserManagementStatus(error.message, 'error');
-            dom.managedUserExtraFieldsInput.focus();
-            return;
-        }
-    }
-
-    const payload = {
-        ...extraFields,
-        name: dom.managedUserNameInput.value.trim(),
-        email: dom.managedUserEmailInput.value.trim(),
-    };
-    setFirstSupportedField(payload, ['User Type', 'User_Type', 'user_type', 'userType', 'role', 'type'], dom.managedUserTypeInput.value.trim(), managedUsers.find(user => user.id === recordId));
-    setFirstSupportedField(payload, ['org_id', 'orgId', 'Org_ID', 'Org ID', 'organisation', 'organization', 'org'], dom.managedUserOrgIdInput.value.trim(), managedUsers.find(user => user.id === recordId));
-
-    if (dom.managedUserVerifiedInput.value) {
-        payload.verified = dom.managedUserVerifiedInput.value === 'true';
-    }
-
-    const password = dom.managedUserPasswordInput.value;
-    if (password) {
-        payload.password = password;
-        payload.passwordConfirm = password;
-    }
-
-    dom.saveManagedUserButton.disabled = true;
-    ui.setUserManagementStatus('Saving user...');
-
-    try {
-        const updatedUser = await pocketbase.updateUserRecord(recordId, payload, currentUserToken);
-        managedUsers = managedUsers.map(user => user.id === recordId ? { ...user, ...updatedUser } : user);
-        selectedManagedUserId = recordId;
-        ui.renderUserManagementList(managedUsers, selectedManagedUserId);
-        ui.renderManagedUserForm(managedUsers.find(user => user.id === selectedManagedUserId));
-        ui.setUserManagementStatus(password ? 'User updated and password reset.' : 'User updated.', 'success');
-
-        if (recordId === currentUser?.id) {
-            currentUser = { ...currentUser, ...updatedUser };
-            persistAuthSession({ token: currentUserToken, record: currentUser });
-            ui.updateCurrentUserDisplay(currentUser);
-        }
-    } catch (error) {
-        console.error('PocketBase user save error:', error);
-        ui.setUserManagementStatus(`Save failed: ${error.message}`, 'error');
-    } finally {
-        dom.saveManagedUserButton.disabled = false;
-    }
-}
-
-function setFirstSupportedField(payload, fieldNames, value, sourceUser) {
-    const existingField = fieldNames.find(fieldName => Object.prototype.hasOwnProperty.call(sourceUser || {}, fieldName));
-    payload[existingField || fieldNames[0]] = value;
-}
-
 function handleSettingsModalBackdropClick(event) {
     if (event.target === dom.settingsModal) {
         ui.closeSettingsModal();
@@ -432,10 +284,6 @@ function handleNavClick(event) {
 
     event.preventDefault();
     const view = navItem.dataset.view;
-    if (view === 'systems') {
-        openUserManagementPage();
-        return;
-    }
     if (view === 'team') {
         ui.openTeamDashboard(navItem.dataset.teamId);
         return;
